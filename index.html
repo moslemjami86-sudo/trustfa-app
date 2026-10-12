@@ -1,0 +1,2454 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تراست‌فا | TrustFa — نظرات واقعی، تصمیم هوشمند</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+
+    window.API_BASE = window.API_BASE || (location.protocol.startsWith("http") ? "" : "http://localhost:8000");
+    window.API_TOKEN_KEY = "trustfa_api_token";
+    async function api(path, opts = {}) {
+      const headers = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});
+      const token = localStorage.getItem(window.API_TOKEN_KEY);
+      if (token) headers.Authorization = "Bearer " + token;
+      const res = await fetch((window.API_BASE || "") + path, Object.assign({}, opts, { headers }));
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        let msg = data.error || ("خطای " + res.status);
+        if (typeof data.detail === "string") msg = data.detail;
+        else if (Array.isArray(data.detail)) msg = data.detail.map(x => x.msg || JSON.stringify(x)).join("، ");
+        throw new Error(msg);
+      }
+      return data;
+    }
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Vazirmatn', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: {
+              50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac',
+              400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d',
+              800: '#166534', 900: '#14532d'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Vazirmatn', sans-serif; }
+    .star-rating input { display: none; }
+    .star-rating label { cursor: pointer; font-size: 1.75rem; color: #d1d5db; transition: color 0.15s; }
+    .star-rating label:hover,
+    .star-rating label:hover ~ label,
+    .star-rating input:checked ~ label { color: #fbbf24; }
+    .star-rating { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 0.25rem; }
+    .review-card { transition: transform 0.2s, box-shadow 0.2s; }
+    .review-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1); }
+    .glass { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ===== Aurora Mesh Hero (Stripe / Linear style) ===== */
+    .hero-premium {
+      position: relative;
+      overflow: hidden;
+      background: #05010f;
+      min-height: 68vh;
+    }
+    .hero-aurora {
+      position: absolute;
+      inset: -35%;
+      z-index: 0;
+      background: conic-gradient(from 120deg at 50% 40%, #22c55e, #3b82f6, #a855f7, #ec4899, #2dd4bf, #22c55e);
+      filter: blur(90px) saturate(1.35);
+      opacity: 0.48;
+      animation: auroraDrift 18s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    .hero-aurora-2 {
+      position: absolute;
+      inset: -25%;
+      z-index: 0;
+      background:
+        radial-gradient(40% 50% at 15% 25%, rgba(34, 197, 94, 0.55) 0%, transparent 70%),
+        radial-gradient(45% 55% at 80% 20%, rgba(59, 130, 246, 0.45) 0%, transparent 70%),
+        radial-gradient(50% 50% at 55% 80%, rgba(168, 85, 247, 0.4) 0%, transparent 70%),
+        radial-gradient(35% 45% at 25% 75%, rgba(236, 72, 153, 0.35) 0%, transparent 70%);
+      filter: blur(40px);
+      animation: auroraDrift 22s ease-in-out infinite alternate-reverse;
+      pointer-events: none;
+    }
+    @keyframes auroraDrift {
+      from { transform: translate3d(-3%, -2%, 0) rotate(0deg) scale(1); }
+      to   { transform: translate3d(4%, 3%, 0) rotate(12deg) scale(1.08); }
+    }
+    .hero-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      z-index: 1;
+      pointer-events: none;
+    }
+    .hero-blob-a {
+      width: min(55vw, 420px); height: min(55vw, 420px);
+      background: rgba(34, 197, 94, 0.45);
+      top: -10%; right: -5%;
+      animation: blobA 16s ease-in-out infinite;
+    }
+    .hero-blob-b {
+      width: min(50vw, 380px); height: min(50vw, 380px);
+      background: rgba(99, 102, 241, 0.4);
+      bottom: -15%; left: -10%;
+      animation: blobB 20s ease-in-out infinite;
+    }
+    .hero-blob-c {
+      width: min(40vw, 300px); height: min(40vw, 300px);
+      background: rgba(236, 72, 153, 0.3);
+      top: 35%; left: 40%;
+      animation: blobC 14s ease-in-out infinite;
+    }
+    @keyframes blobA {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-8%, 12%) scale(1.15); }
+    }
+    @keyframes blobB {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(12%, -10%) scale(1.2); }
+    }
+    @keyframes blobC {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-10%, 8%) scale(1.25); }
+    }
+    .hero-content { position: relative; z-index: 10; }
+    .hero-title-shimmer {
+      background: linear-gradient(105deg, #ffffff 15%, #86efac 40%, #93c5fd 55%, #ffffff 80%);
+      background-size: 220% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmerText 5s linear infinite;
+    }
+    @keyframes shimmerText {
+      0% { background-position: 200% center; }
+      100% { background-position: -200% center; }
+    }
+    .hero-search-wrap {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+      border-radius: 1.25rem;
+      padding: 6px;
+    }
+    .hero-search-inner {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-radius: 1rem;
+      overflow: hidden;
+    }
+    .quick-tag {
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.14) !important;
+      transition: background 0.2s, transform 0.2s !important;
+    }
+    .quick-tag:hover {
+      background: rgba(255,255,255,0.22) !important;
+      transform: translateY(-2px);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hero-aurora, .hero-aurora-2, .hero-blob, .hero-title-shimmer { animation: none !important; }
+      .hero-title-shimmer { -webkit-text-fill-color: #fff; background: none; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+  <!-- ========== NAVBAR ========== -->
+  <nav class="sticky top-0 z-50 glass border-b border-slate-200/60">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-3">
+        <!-- سمت راست: منوی سه‌خط (بعد از ورود) + لوگو -->
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="relative" id="user-menu-wrap">
+            <button type="button" id="user-menu" class="hidden items-center justify-center w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition" aria-label="منوی کاربری">
+              <i class="fas fa-bars text-lg"></i>
+            </button>
+            <div id="user-dropdown" class="hidden absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl border border-slate-100 shadow-xl z-50 overflow-hidden py-1">
+              <div class="px-4 py-3 border-b border-slate-100 flex items-center gap-3">
+                <div id="user-avatar" class="w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center text-sm font-bold overflow-hidden shrink-0">ش</div>
+                <div class="min-w-0">
+                  <div id="user-display-name" class="font-semibold text-sm truncate">کاربر</div>
+                  <div class="text-xs text-slate-400">حساب کاربری</div>
+                </div>
+              </div>
+              <button type="button" onclick="showPage('profile'); closeUserDropdown();" class="w-full text-right px-4 py-3 text-sm hover:bg-slate-50 flex items-center gap-3 text-slate-700 border-0 bg-transparent cursor-pointer">
+                <i class="fas fa-user w-5 text-center text-brand-600"></i> پنل کاربری
+              </button>
+              <button type="button" id="admin-menu-btn" onclick="showPage('admin'); closeUserDropdown();" class="hidden w-full text-right px-4 py-3 text-sm hover:bg-slate-50 flex items-center gap-3 text-slate-700 border-0 bg-transparent cursor-pointer">
+                <i class="fas fa-shield-alt w-5 text-center text-amber-600"></i> پنل ادمین
+              </button>
+              <button type="button" onclick="showPage('home'); setTimeout(()=>document.getElementById('write')?.scrollIntoView({behavior:'smooth'}),100); closeUserDropdown();" class="w-full text-right px-4 py-3 text-sm hover:bg-slate-50 flex items-center gap-3 text-slate-700 border-0 bg-transparent cursor-pointer">
+                <i class="fas fa-pen w-5 text-center text-brand-600"></i> ثبت نظر
+              </button>
+              <button type="button" onclick="logout(); closeUserDropdown();" class="w-full text-right px-4 py-3 text-sm hover:bg-red-50 flex items-center gap-3 text-red-600 border-0 bg-transparent cursor-pointer border-t border-slate-100">
+                <i class="fas fa-sign-out-alt w-5 text-center"></i> خروج از حساب
+              </button>
+            </div>
+          </div>
+          <div id="nav-brand" class="flex items-center gap-2 cursor-pointer" onclick="showPage('home')">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-emerald-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-brand-500/30 shrink-0">T</div>
+            <span class="text-xl font-bold tracking-tight hidden sm:inline">تراست‌فا</span><span class="hidden lg:inline text-xs text-slate-400 font-medium mr-1">TrustFa</span>
+          </div>
+        </div>
+        <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+          <a href="#" onclick="showPage('home'); return false;" class="hover:text-brand-600 transition">خانه</a>
+          <a href="#categories" onclick="showPage('home'); setTimeout(()=>document.getElementById('categories').scrollIntoView({behavior:'smooth'}),100); return false;" class="hover:text-brand-600 transition">دسته‌بندی‌ها</a>
+          <a href="#reviews" onclick="showPage('home'); setTimeout(()=>document.getElementById('reviews').scrollIntoView({behavior:'smooth'}),100); return false;" class="hover:text-brand-600 transition">نظرات اخیر</a>
+          <a href="#write" onclick="showPage('home'); setTimeout(()=>document.getElementById('write').scrollIntoView({behavior:'smooth'}),100); return false;" class="hover:text-brand-600 transition">ثبت نظر</a>
+        </div>
+        <div class="flex items-center gap-3" id="auth-buttons">
+          <button onclick="showPage('login')" class="text-sm font-medium px-4 py-2 rounded-lg hover:bg-slate-100 transition">ورود</button>
+          <button onclick="showPage('register')" class="text-sm font-medium px-4 py-2 rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition shadow-md shadow-brand-600/20">ثبت‌نام</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========== HOME PAGE ========== -->
+  <div id="page-home" class="page active">
+
+    <!-- Hero Aurora -->
+    <section class="hero-premium text-white">
+      <div class="hero-aurora" aria-hidden="true"></div>
+      <div class="hero-aurora-2" aria-hidden="true"></div>
+      <div class="hero-blob hero-blob-a" aria-hidden="true"></div>
+      <div class="hero-blob hero-blob-b" aria-hidden="true"></div>
+      <div class="hero-blob hero-blob-c" aria-hidden="true"></div>
+
+      <div class="hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
+        <div class="max-w-3xl mx-auto text-center">
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 hero-title-shimmer">
+            نظرات واقعی، تصمیم‌های هوشمند
+          </h1>
+          <p class="text-lg md:text-xl text-slate-300/90 mb-10 leading-relaxed">
+            میلیون‌ها نظر واقعی از کاربران واقعی. کسب‌وکار مورد اعتمادت رو پیدا کن یا تجربه‌ات رو به اشتراک بگذار.
+          </p>
+          <div class="relative max-w-2xl mx-auto">
+            <div class="hero-search-wrap">
+              <div class="hero-search-inner">
+                <i class="fas fa-search text-slate-400 pr-5 pl-4 text-lg"></i>
+                <input id="search-input" type="text" placeholder="جستجوی کسب‌وکار، برند یا خدمات..." class="flex-1 py-4 text-slate-800 placeholder-slate-400 outline-none text-base bg-transparent" />
+                <button id="search-btn" class="bg-gradient-to-l from-brand-600 to-emerald-500 hover:from-brand-700 hover:to-emerald-600 text-white px-8 py-4 font-semibold transition">جستجو</button>
+              </div>
+            </div>
+          </div>
+          <div class="mt-8 flex flex-wrap justify-center gap-3 text-sm">
+            <button type="button" class="quick-tag px-4 py-1.5 rounded-full bg-white/10 active:scale-95 cursor-pointer border-0 text-white" data-query="فروشگاه">فروشگاه اینترنتی</button>
+            <button type="button" class="quick-tag px-4 py-1.5 rounded-full bg-white/10 active:scale-95 cursor-pointer border-0 text-white" data-query="رستوران">رستوران</button>
+            <button type="button" class="quick-tag px-4 py-1.5 rounded-full bg-white/10 active:scale-95 cursor-pointer border-0 text-white" data-query="مالی">خدمات بانکی</button>
+            <button type="button" class="quick-tag px-4 py-1.5 rounded-full bg-white/10 active:scale-95 cursor-pointer border-0 text-white" data-query="نرم‌افزار">اپلیکیشن</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="bg-white border-b border-slate-100">
+      <div class="max-w-7xl mx-auto px-4 py-10">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div><div class="text-3xl font-bold text-brand-600">۲.۴M+</div><div class="text-sm text-slate-500 mt-1">نظر ثبت‌شده</div></div>
+          <div><div class="text-3xl font-bold text-brand-600">۱۸۰K+</div><div class="text-sm text-slate-500 mt-1">کسب‌وکار</div></div>
+          <div><div class="text-3xl font-bold text-brand-600">۹۴٪</div><div class="text-sm text-slate-500 mt-1">رضایت کاربران</div></div>
+          <div><div class="text-3xl font-bold text-brand-600">۴.۸</div><div class="text-sm text-slate-500 mt-1">میانگین امتیاز</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories -->
+    <section id="categories" class="py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-10">
+          <h2 class="text-2xl md:text-3xl font-bold">دسته‌بندی‌های محبوب</h2>
+          <a href="#" id="show-all-categories" class="text-brand-600 font-medium hover:underline">مشاهده همه</a>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" id="categories-grid"></div>
+      </div>
+    </section>
+
+    <!-- Businesses -->
+    <section id="businesses-section" class="py-16 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <h2 class="text-2xl md:text-3xl font-bold">کسب‌وکارهای برتر</h2>
+          <div id="filter-info"></div>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="businesses-grid"></div>
+        <div class="text-center mt-10">
+          <button id="show-more-businesses" class="px-8 py-3 rounded-xl border-2 border-brand-500 text-brand-600 font-semibold hover:bg-brand-50 transition">مشاهده بیشتر</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reviews -->
+    <section id="reviews" class="py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+          <h2 class="text-2xl md:text-3xl font-bold">نظرات اخیر کاربران</h2>
+          <div class="flex gap-2 flex-wrap">
+            <button class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-brand-600 text-white" data-filter="all">همه</button>
+            <button class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-white border border-slate-200 hover:bg-slate-50" data-filter="5">۵ ستاره</button>
+            <button class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-white border border-slate-200 hover:bg-slate-50" data-filter="4">۴ ستاره</button>
+            <button class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-white border border-slate-200 hover:bg-slate-50" data-filter="3">۳ ستاره</button>
+            <button class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-white border border-slate-200 hover:bg-slate-50" data-filter="2">۲ ستاره</button>
+            <button class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-white border border-slate-200 hover:bg-slate-50" data-filter="1">۱ ستاره</button>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6" id="reviews-list"></div>
+      </div>
+    </section>
+
+    <!-- Write Review -->
+    <section id="write" class="py-16 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+      <div class="max-w-3xl mx-auto px-4">
+        <div class="text-center mb-10">
+          <h2 class="text-3xl font-bold mb-3">تجربه‌ات رو بنویس</h2>
+          <p class="text-slate-300">نظر صادقانه‌ات به دیگران کمک می‌کنه تصمیم بهتری بگیرن</p>
+        </div>
+        <form id="review-form" class="bg-white/10 backdrop-blur rounded-3xl p-8 border border-white/10 space-y-6">
+          <div class="relative">
+            <label class="block text-sm font-medium mb-2">نام کسب‌وکار</label>
+            <input type="text" id="business-name" required placeholder="مثلاً دیجی‌کالا" autocomplete="off" class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 outline-none focus:border-brand-400 transition" />
+            <div id="business-suggest" class="hidden absolute z-30 left-0 right-0 mt-1 max-h-56 overflow-y-auto rounded-xl border border-white/15 bg-slate-900/95 backdrop-blur-md shadow-2xl"></div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">امتیاز شما</label>
+            <div class="star-rating" id="star-rating">
+              <input type="radio" id="star5" name="rating" value="5" /><label for="star5"><i class="fas fa-star"></i></label>
+              <input type="radio" id="star4" name="rating" value="4" /><label for="star4"><i class="fas fa-star"></i></label>
+              <input type="radio" id="star3" name="rating" value="3" /><label for="star3"><i class="fas fa-star"></i></label>
+              <input type="radio" id="star2" name="rating" value="2" /><label for="star2"><i class="fas fa-star"></i></label>
+              <input type="radio" id="star1" name="rating" value="1" /><label for="star1"><i class="fas fa-star"></i></label>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">عنوان نظر</label>
+            <input type="text" id="review-title" required placeholder="خلاصه تجربه‌ات در یک جمله" class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 outline-none focus:border-brand-400 transition" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">متن نظر</label>
+            <textarea id="review-text" rows="5" required placeholder="جزئیات تجربه‌ات رو بنویس..." class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 outline-none focus:border-brand-400 transition resize-none"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">آپلود عکس (اختیاری)</label>
+            <label for="photo-input" id="upload-zone" class="relative block border-2 border-dashed border-white/30 rounded-xl p-6 text-center hover:border-brand-400 transition cursor-pointer active:scale-[0.99]">
+              <input type="file" id="photo-input" accept="image/jpeg,image/png,image/jpg,image/webp,image/*" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+              <div class="pointer-events-none select-none">
+                <i class="fas fa-cloud-upload-alt text-3xl text-slate-400 mb-2 block"></i>
+                <p class="text-sm text-slate-300">برای انتخاب عکس اینجا بزن</p>
+                <p class="text-xs text-slate-400 mt-1">حداکثر ۵ عکس · JPG, PNG</p>
+              </div>
+            </label>
+            <div id="preview-images" class="flex flex-wrap gap-3 mt-4"></div>
+          </div>
+          <button type="submit" class="w-full py-4 rounded-xl bg-brand-500 hover:bg-brand-600 font-bold text-lg transition shadow-lg shadow-brand-500/30">ثبت نظر</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-4 gap-8 mb-10">
+          <div>
+            <div class="flex items-center gap-2 text-white mb-4">
+              <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center font-bold">ر</div>
+              <span class="font-bold text-lg">تراست‌فا</span>
+            </div>
+            <p class="text-sm leading-relaxed">پلتفرم معتبر نظرات کاربران ایرانی. تصمیم‌های بهتر با نظرات واقعی.</p>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-4">لینک‌های سریع</h4>
+            <ul class="space-y-2 text-sm">
+              <li><a href="#" onclick="showPage('about'); return false;" class="hover:text-white transition">درباره ما</a></li>
+              <li><a href="#" onclick="showPage('terms'); return false;" class="hover:text-white transition">قوانین و مقررات</a></li>
+              <li><a href="#" onclick="showPage('privacy'); return false;" class="hover:text-white transition">حریم خصوصی</a></li>
+              <li><a href="#" onclick="showPage('contact'); return false;" class="hover:text-white transition">تماس با ما</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-4">برای کسب‌وکارها</h4>
+            <ul class="space-y-2 text-sm">
+              <li><a href="#" onclick="showPage('biz-register'); return false;" class="hover:text-white transition">ثبت کسب‌وکار</a></li>
+              <li><a href="#" onclick="openBizPanel(); return false;" class="hover:text-white transition">پنل مدیریت</a></li>
+              <li><a href="#" onclick="showPage('pricing'); return false;" class="hover:text-white transition">تعرفه‌ها</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-4">شبکه‌های اجتماعی</h4>
+            <div class="flex gap-3">
+              <a href="https://instagram.com" target="_blank" rel="noopener" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-500 transition" title="اینستاگرام"><i class="fab fa-instagram"></i></a>
+              <a href="https://twitter.com" target="_blank" rel="noopener" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-500 transition" title="توییتر / X"><i class="fab fa-twitter"></i></a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-500 transition" title="لینکدین"><i class="fab fa-linkedin"></i></a>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-slate-800 pt-6 text-center text-sm">© ۱۴۰۵ تراست‌فا · trustfa.ir. تمامی حقوق محفوظ است.</div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ========== INFO PAGES ========== -->
+  <div id="page-about" class="page">
+    <div class="max-w-3xl mx-auto px-4 py-10">
+      <button onclick="showPage('home')" class="mb-6 text-sm text-slate-500 hover:text-brand-600"><i class="fas fa-arrow-right ml-1"></i> بازگشت</button>
+      <div class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-4">
+        <h1 class="text-2xl font-bold">درباره تراست‌فا</h1>
+        <p class="text-slate-600 leading-relaxed">تراست‌فا یک پلتفرم نظرات کاربران است که به مردم کمک می‌کند با خواندن تجربه‌های واقعی، تصمیم بهتری برای خرید خدمات و محصولات بگیرند.</p>
+        <p class="text-slate-600 leading-relaxed">ماموریت ما شفافیت، صداقت و کمک به کسب‌وکارهای معتبر برای شنیدن صدای مشتریان است.</p>
+        <ul class="list-disc list-inside text-slate-600 space-y-2">
+          <li>نظرات واقعی کاربران</li>
+          <li>امکان گزارش نظرات نامناسب</li>
+          <li>پنل اختصاصی برای کسب‌وکارها</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-terms" class="page">
+    <div class="max-w-3xl mx-auto px-4 py-10">
+      <button onclick="showPage('home')" class="mb-6 text-sm text-slate-500 hover:text-brand-600"><i class="fas fa-arrow-right ml-1"></i> بازگشت</button>
+      <div class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-4">
+        <h1 class="text-2xl font-bold">قوانین و مقررات</h1>
+        <ol class="list-decimal list-inside text-slate-600 space-y-3 leading-relaxed">
+          <li>کاربران موظف‌اند نظرات صادقانه و بدون توهین ثبت کنند.</li>
+          <li>ثبت نظر جعلی، اسپم یا تبلیغاتی ممنوع است و منجر به حذف حساب می‌شود.</li>
+          <li>هر کاربر مسئول محتوای منتشرشده توسط خود است.</li>
+          <li>تراست‌فا حق حذف یا پنهان‌سازی نظرات گزارش‌شده را دارد.</li>
+          <li>استفاده از سرویس به‌منزله پذیرش این قوانین است.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-privacy" class="page">
+    <div class="max-w-3xl mx-auto px-4 py-10">
+      <button onclick="showPage('home')" class="mb-6 text-sm text-slate-500 hover:text-brand-600"><i class="fas fa-arrow-right ml-1"></i> بازگشت</button>
+      <div class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-4">
+        <h1 class="text-2xl font-bold">حریم خصوصی</h1>
+        <p class="text-slate-600 leading-relaxed">اطلاعات حساب شما (نام، ایمیل، موبایل و عکس پروفایل) فقط برای ارائه سرویس استفاده می‌شود.</p>
+        <ul class="list-disc list-inside text-slate-600 space-y-2">
+          <li>رمز عبور به‌صورت هش‌شده ذخیره می‌شود.</li>
+          <li>اطلاعات به اشخاص ثالث فروخته نمی‌شود.</li>
+          <li>می‌توانید هر زمان حساب و نظرات خود را مدیریت یا حذف کنید.</li>
+          <li>در نسخه دمو، داده‌ها فقط روی دستگاه شما (localStorage) نگه‌داری می‌شوند.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-contact" class="page">
+    <div class="max-w-3xl mx-auto px-4 py-10">
+      <button onclick="showPage('home')" class="mb-6 text-sm text-slate-500 hover:text-brand-600"><i class="fas fa-arrow-right ml-1"></i> بازگشت</button>
+      <div class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+        <h1 class="text-2xl font-bold mb-2">تماس با ما</h1>
+        <p class="text-slate-500 text-sm mb-6">پیام خود را ارسال کنید؛ در دمو بلافاصله ثبت می‌شود.</p>
+        <form id="contact-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">نام</label>
+            <input type="text" id="contact-name" required class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">ایمیل</label>
+            <input type="email" id="contact-email" required class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">پیام</label>
+            <textarea id="contact-message" rows="5" required class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500 resize-none"></textarea>
+          </div>
+          <button type="submit" class="w-full py-3 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition">ارسال پیام</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-biz-register" class="page">
+    <div class="max-w-3xl mx-auto px-4 py-10">
+      <button onclick="showPage('home')" class="mb-6 text-sm text-slate-500 hover:text-brand-600"><i class="fas fa-arrow-right ml-1"></i> بازگشت</button>
+      <div class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+        <h1 class="text-2xl font-bold mb-2">ثبت کسب‌وکار</h1>
+        <p class="text-slate-500 text-sm mb-6">کسب‌وکار خود را ثبت کنید تا نظرات مشتریان را مدیریت کنید.</p>
+        <form id="biz-register-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">نام کسب‌وکار</label>
+            <input type="text" id="biz-reg-name" required class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">دسته‌بندی</label>
+            <select id="biz-reg-category" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500">
+              <option>فروشگاه اینترنتی</option>
+              <option>رستوران و غذا</option>
+              <option>نرم‌افزار</option>
+              <option>خدمات مالی</option>
+              <option>سفر</option>
+              <option>سلامت</option>
+              <option>سایر</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">وب‌سایت (اختیاری)</label>
+            <input type="text" id="biz-reg-website" placeholder="example.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">توضیحات کوتاه</label>
+            <textarea id="biz-reg-desc" rows="3" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500 resize-none"></textarea>
+          </div>
+          <button type="submit" class="w-full py-3 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition">ثبت کسب‌وکار</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-biz-panel" class="page">
+    <div class="max-w-4xl mx-auto px-4 py-10">
+      <button onclick="showPage('home')" class="mb-6 text-sm text-slate-500 hover:text-brand-600"><i class="fas fa-arrow-right ml-1"></i> بازگشت</button>
+      <div class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+        <h1 class="text-2xl font-bold mb-2">پنل مدیریت کسب‌وکار</h1>
+        <p class="text-slate-500 text-sm mb-6" id="biz-panel-subtitle">کسب‌وکارهای ثبت‌شده شما</p>
+        <div id="biz-panel-list" class="space-y-4"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-pricing" class="page">
+    <div class="max-w-5xl mx-auto px-4 py-10">
+      <button onclick="showPage('home')" class="mb-6 text-sm text-slate-500 hover:text-brand-600"><i class="fas fa-arrow-right ml-1"></i> بازگشت</button>
+      <h1 class="text-2xl font-bold text-center mb-2">تعرفه‌ها</h1>
+      <p class="text-center text-slate-500 mb-8">پلن مناسب کسب‌وکار خود را انتخاب کنید</p>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+          <h3 class="font-bold text-lg mb-1">رایگان</h3>
+          <div class="text-3xl font-extrabold text-brand-600 mb-4">۰ <span class="text-sm font-normal text-slate-400">تومان / ماه</span></div>
+          <ul class="text-sm text-slate-600 space-y-2 mb-6">
+            <li>✓ ثبت کسب‌وکار</li>
+            <li>✓ مشاهده نظرات</li>
+            <li>✓ پاسخ به ۳ نظر در ماه</li>
+          </ul>
+          <button onclick="showPage('biz-register')" class="w-full py-2.5 rounded-xl border border-brand-500 text-brand-600 font-semibold hover:bg-brand-50 transition">شروع رایگان</button>
+        </div>
+        <div class="bg-white rounded-2xl border-2 border-brand-500 p-6 shadow-md relative">
+          <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-brand-500 text-white text-xs rounded-full">پیشنهادی</span>
+          <h3 class="font-bold text-lg mb-1">حرفه‌ای</h3>
+          <div class="text-3xl font-extrabold text-brand-600 mb-4">۴۹۰٬۰۰۰ <span class="text-sm font-normal text-slate-400">تومان / ماه</span></div>
+          <ul class="text-sm text-slate-600 space-y-2 mb-6">
+            <li>✓ همه امکانات رایگان</li>
+            <li>✓ پاسخ نامحدود به نظرات</li>
+            <li>✓ نمایش برجسته در جستجو</li>
+            <li>✓ گزارش آماری</li>
+          </ul>
+          <button onclick="selectPlan('حرفه‌ای')" class="w-full py-2.5 rounded-xl bg-brand-600 text-white font-semibold hover:bg-brand-700 transition">انتخاب پلن</button>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+          <h3 class="font-bold text-lg mb-1">سازمانی</h3>
+          <div class="text-3xl font-extrabold text-brand-600 mb-4">تماس بگیرید</div>
+          <ul class="text-sm text-slate-600 space-y-2 mb-6">
+            <li>✓ همه امکانات حرفه‌ای</li>
+            <li>✓ چند شعبه / برند</li>
+            <li>✓ مدیر اختصاصی</li>
+            <li>✓ API اختصاصی</li>
+          </ul>
+          <button onclick="showPage('contact')" class="w-full py-2.5 rounded-xl border border-slate-200 font-semibold hover:bg-slate-50 transition">تماس با فروش</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== LOGIN PAGE ========== -->
+  <div id="page-login" class="page">
+    <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
+      <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+          <h1 class="text-3xl font-bold mb-2">خوش آمدید</h1>
+          <p class="text-slate-500">وارد حساب کاربری خود شوید</p>
+        </div>
+        <form id="login-form" class="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 space-y-5">
+          <div>
+            <label class="block text-sm font-medium mb-2">ایمیل یا شماره موبایل</label>
+            <div class="relative">
+              <i class="fas fa-user absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input type="text" id="login-identifier" required placeholder="example@email.com یا ۰۹۱۲..." class="w-full pr-11 pl-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">رمز عبور</label>
+            <div class="relative">
+              <i class="fas fa-lock absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input type="password" id="login-password" required placeholder="••••••••" class="w-full pr-11 pl-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition" />
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="login-remember" class="rounded border-slate-300 text-brand-600" /><span class="text-slate-600">مرا به خاطر بسپار</span></label>
+            <a href="#" onclick="showToast('رمز را از لیست کاربران ثبت‌نام‌شده بازیابی کنید'); return false;" class="text-brand-600 hover:underline">فراموشی رمز؟</a>
+          </div>
+          <p id="login-error" class="hidden text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2"></p>
+          <button type="submit" class="w-full py-3.5 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition shadow-lg shadow-brand-600/20">ورود</button>
+          <div class="relative my-4">
+            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+            <div class="relative flex justify-center text-sm"><span class="px-4 bg-white text-slate-400">یا</span></div>
+          </div>
+          <div id="google-btn-login" class="flex justify-center min-h-[44px]"></div>
+          <p id="google-login-hint" class="hidden text-xs text-center text-slate-400">برای ورود واقعی گوگل، GOOGLE_CLIENT_ID را روی سرور تنظیم کنید</p>
+        </form>
+        <p class="text-center mt-6 text-sm text-slate-500">حساب ندارید؟ <a href="#" onclick="showPage('register'); return false;" class="text-brand-600 font-semibold hover:underline">ثبت‌نام کنید</a></p>
+        <p class="text-center mt-3"><a href="#" onclick="showPage('home'); return false;" class="text-sm text-slate-400 hover:text-brand-600">← بازگشت به خانه</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== REGISTER PAGE ========== -->
+  <div id="page-register" class="page">
+    <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
+      <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+          <h1 class="text-3xl font-bold mb-2">عضویت در تراست‌فا</h1>
+          <p class="text-slate-500">حساب کاربری رایگان بسازید و نظر بدهید</p>
+        </div>
+        <form id="register-form" class="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 space-y-5">
+          <div>
+            <label class="block text-sm font-medium mb-2">نام و نام خانوادگی</label>
+            <div class="relative">
+              <i class="fas fa-user absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input type="text" id="reg-name" required placeholder="مثلاً سارا محمدی" class="w-full pr-11 pl-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">ایمیل</label>
+            <div class="relative">
+              <i class="fas fa-envelope absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input type="email" id="reg-email" required placeholder="example@email.com" class="w-full pr-11 pl-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">شماره موبایل</label>
+            <div class="relative">
+              <i class="fas fa-mobile-alt absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input type="tel" id="reg-phone" required placeholder="۰۹۱۲۳۴۵۶۷۸۹" class="w-full pr-11 pl-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition" />
+            </div>
+          </div>
+          <p id="register-error" class="hidden text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2"></p>
+          <div>
+            <label class="block text-sm font-medium mb-2">رمز عبور</label>
+            <div class="relative">
+              <i class="fas fa-lock absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input type="password" id="reg-password" required minlength="6" placeholder="حداقل ۶ کاراکتر" class="w-full pr-11 pl-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">تکرار رمز عبور</label>
+            <div class="relative">
+              <i class="fas fa-lock absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input type="password" id="reg-password2" required minlength="6" placeholder="تکرار رمز عبور" class="w-full pr-11 pl-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition" />
+            </div>
+          </div>
+          <label class="flex items-start gap-2 text-sm cursor-pointer">
+            <input type="checkbox" required class="mt-1 rounded border-slate-300 text-brand-600" />
+            <span class="text-slate-600">با <a href="#" class="text-brand-600 hover:underline">قوانین و مقررات</a> موافقم</span>
+          </label>
+          <button type="submit" class="w-full py-3.5 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition shadow-lg shadow-brand-600/20">ایجاد حساب کاربری</button>
+          <div class="relative my-4">
+            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+            <div class="relative flex justify-center text-sm"><span class="px-4 bg-white text-slate-400">یا</span></div>
+          </div>
+          <div id="google-btn-register" class="flex justify-center min-h-[44px]"></div>
+        </form>
+        <p class="text-center mt-6 text-sm text-slate-500">قبلاً ثبت‌نام کرده‌اید؟ <a href="#" onclick="showPage('login'); return false;" class="text-brand-600 font-semibold hover:underline">وارد شوید</a></p>
+        <p class="text-center mt-3"><a href="#" onclick="showPage('home'); return false;" class="text-sm text-slate-400 hover:text-brand-600">← بازگشت به خانه</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== PROFILE PANEL ========== -->
+
+  <!-- ========== ADMIN PANEL ========== -->
+  <div id="page-admin" class="page">
+    <div class="max-w-6xl mx-auto px-4 py-10">
+      <button onclick="showPage('home')" class="mb-6 text-sm text-slate-500 hover:text-brand-600 flex items-center gap-2"><i class="fas fa-arrow-right"></i> بازگشت</button>
+      <div class="bg-gradient-to-l from-slate-800 to-slate-900 rounded-3xl px-6 py-8 text-white mb-8">
+        <h1 class="text-2xl font-bold flex items-center gap-3"><i class="fas fa-shield-alt text-amber-400"></i> پنل مدیریت</h1>
+        <p class="text-slate-300 text-sm mt-1">آمار، کاربران، نظرات، کسب‌وکارها و پیام‌ها</p>
+      </div>
+      <div id="admin-stats" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
+      <div class="flex gap-2 flex-wrap mb-6" id="admin-tabs">
+        <button type="button" data-tab="reviews" class="admin-tab px-4 py-2 rounded-xl text-sm font-medium bg-brand-600 text-white">نظرات</button>
+        <button type="button" data-tab="users" class="admin-tab px-4 py-2 rounded-xl text-sm font-medium bg-white border border-slate-200">کاربران</button>
+        <button type="button" data-tab="businesses" class="admin-tab px-4 py-2 rounded-xl text-sm font-medium bg-white border border-slate-200">کسب‌وکارها</button>
+        <button type="button" data-tab="reports" class="admin-tab px-4 py-2 rounded-xl text-sm font-medium bg-white border border-slate-200">گزارش‌ها</button>
+        <button type="button" data-tab="messages" class="admin-tab px-4 py-2 rounded-xl text-sm font-medium bg-white border border-slate-200">پیام‌ها</button>
+      </div>
+      <div id="admin-content" class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 md:p-6 min-h-[200px]"></div>
+    </div>
+  </div>
+
+  <div id="page-profile" class="page">
+    <div class="max-w-3xl mx-auto px-4 py-10">
+      <button onclick="showPage('home')" class="mb-6 text-sm text-slate-500 hover:text-brand-600 flex items-center gap-2"><i class="fas fa-arrow-right"></i> بازگشت به خانه</button>
+      <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="bg-gradient-to-l from-brand-600 to-emerald-700 px-6 py-8 text-white">
+          <h1 class="text-2xl font-bold">پنل کاربری</h1>
+          <p class="text-brand-100 text-sm mt-1">مدیریت حساب و عکس پروفایل</p>
+        </div>
+        <div class="p-6 md:p-8 space-y-8">
+          <!-- Avatar -->
+          <div class="flex flex-col sm:flex-row items-center gap-6">
+            <div class="relative">
+              <div id="profile-avatar-preview" class="w-28 h-28 rounded-full bg-gradient-to-br from-brand-400 to-emerald-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden ring-4 ring-brand-50 shadow-lg">؟</div>
+              <label for="profile-photo-input" class="absolute bottom-0 left-0 w-9 h-9 rounded-full bg-brand-600 text-white flex items-center justify-center cursor-pointer shadow-md hover:bg-brand-700 transition" title="تغییر عکس">
+                <i class="fas fa-camera text-sm"></i>
+              </label>
+              <input type="file" id="profile-photo-input" accept="image/*" class="hidden" />
+            </div>
+            <div class="text-center sm:text-right">
+              <div class="font-bold text-lg" id="profile-name-label">نام کاربر</div>
+              <div class="text-sm text-slate-500" id="profile-email-label">email@example.com</div>
+              <div class="text-xs text-slate-400 mt-1" id="profile-provider-label"></div>
+              <div class="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
+                <label for="profile-photo-input" class="px-4 py-2 rounded-xl bg-brand-50 text-brand-700 text-sm font-medium cursor-pointer hover:bg-brand-100 transition">آپلود عکس</label>
+                <button type="button" id="profile-remove-photo" class="px-4 py-2 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 transition">حذف عکس</button>
+              </div>
+            </div>
+          </div>
+
+          <form id="profile-form" class="space-y-5 border-t border-slate-100 pt-6">
+            <div>
+              <label class="block text-sm font-medium mb-2">نام و نام خانوادگی</label>
+              <input type="text" id="profile-name" required class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">ایمیل</label>
+              <input type="email" id="profile-email" required class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">شماره موبایل</label>
+              <input type="tel" id="profile-phone" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">رمز عبور جدید (اختیاری)</label>
+              <input type="password" id="profile-password" minlength="6" placeholder="خالی بگذارید اگر نمی‌خواهید عوض شود" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+            </div>
+            <button type="submit" class="w-full py-3.5 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition shadow-lg shadow-brand-600/20">ذخیره تغییرات</button>
+          </form>
+
+          <!-- My reviews summary -->
+          <div class="border-t border-slate-100 pt-6">
+            <h2 class="font-bold text-lg mb-4">نظرات من</h2>
+            <div id="profile-my-reviews" class="space-y-3"></div>
+          </div>
+
+          <!-- خروج از حساب -->
+          <div class="border-t border-slate-100 pt-6">
+            <button type="button" onclick="logout()" class="w-full py-3.5 rounded-xl border-2 border-red-200 text-red-600 font-bold hover:bg-red-50 transition flex items-center justify-center gap-2">
+              <i class="fas fa-sign-out-alt"></i>
+              خروج از حساب کاربری
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google connect modal (demo + optional real photo URL) -->
+  <div id="google-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold flex items-center gap-2"><i class="fab fa-google text-red-500"></i> ورود با گوگل</h3>
+        <button type="button" onclick="closeGoogleModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center">×</button>
+      </div>
+      <p class="text-sm text-slate-500 mb-4">برای دمو می‌توانید با حساب گوگل‌مانند وارد شوید. عکس پروفایل را آپلود کنید یا لینک عکس گوگل بگذارید.</p>
+      <form id="google-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">نام</label>
+          <input type="text" id="google-name" required placeholder="نام نمایشی در گوگل" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-brand-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">ایمیل گوگل</label>
+          <input type="email" id="google-email" required placeholder="you@gmail.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-brand-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">عکس پروفایل (آپلود)</label>
+          <input type="file" id="google-photo-file" accept="image/*" class="w-full text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">یا لینک عکس گوگل (اختیاری)</label>
+          <input type="url" id="google-photo-url" placeholder="https://lh3.googleusercontent.com/..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-brand-500 text-sm" />
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition flex items-center justify-center gap-2">
+          <i class="fab fa-google"></i> ادامه با گوگل
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== BUSINESS DETAIL PAGE ========== -->
+  <div id="page-business" class="page">
+    <div class="max-w-7xl mx-auto px-4 py-10">
+      <button onclick="showPage('home')" class="mb-6 text-sm text-slate-500 hover:text-brand-600 flex items-center gap-2"><i class="fas fa-arrow-right"></i> بازگشت</button>
+      <div class="bg-white rounded-3xl border border-slate-100 p-8 mb-8 flex flex-col md:flex-row gap-8 items-start">
+        <div id="biz-logo" class="w-24 h-24 rounded-2xl bg-red-500 flex items-center justify-center text-white text-3xl font-bold shrink-0">DK</div>
+        <div class="flex-1">
+          <div class="flex items-center gap-3 mb-2">
+            <h1 id="biz-name" class="text-3xl font-bold">دیجی‌کالا</h1>
+            <span class="px-2.5 py-1 bg-brand-50 text-brand-700 text-xs font-medium rounded-full flex items-center gap-1"><i class="fas fa-check-circle"></i> تأیید شده</span>
+          </div>
+          <p id="biz-category" class="text-slate-500 mb-4">فروشگاه اینترنتی</p>
+          <div class="flex items-center gap-4 flex-wrap">
+            <div class="flex items-center gap-2">
+              <span id="biz-rating" class="text-4xl font-bold text-brand-600">۴.۶</span>
+              <div>
+                <div id="biz-stars" class="flex text-amber-400 text-lg"></div>
+                <div id="biz-reviews" class="text-sm text-slate-400">۱۲٬۸۴۰ نظر</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button onclick="showPage('home'); setTimeout(()=>{document.getElementById('business-name').value=document.getElementById('biz-name').textContent; document.getElementById('write').scrollIntoView({behavior:'smooth'});},100)" class="px-6 py-3 bg-brand-600 text-white rounded-xl font-semibold hover:bg-brand-700 transition shrink-0">ثبت نظر جدید</button>
+      </div>
+      <div class="grid lg:grid-cols-3 gap-8">
+        <div class="bg-white rounded-2xl border border-slate-100 p-6">
+          <h3 class="font-bold mb-4">توزیع امتیازها</h3>
+          <div class="space-y-3" id="rating-dist"></div>
+        </div>
+        <div class="lg:col-span-2 space-y-4" id="biz-reviews-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Review Modal -->
+  <div id="edit-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold">ویرایش نظر</h3>
+        <button type="button" onclick="closeEditModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500">×</button>
+      </div>
+      <form id="edit-review-form" class="space-y-4">
+        <input type="hidden" id="edit-review-id" />
+        <div>
+          <label class="block text-sm font-medium mb-1">امتیاز</label>
+          <div class="star-rating" id="edit-star-rating">
+            <input type="radio" id="edit-star5" name="edit-rating" value="5" /><label for="edit-star5"><i class="fas fa-star"></i></label>
+            <input type="radio" id="edit-star4" name="edit-rating" value="4" /><label for="edit-star4"><i class="fas fa-star"></i></label>
+            <input type="radio" id="edit-star3" name="edit-rating" value="3" /><label for="edit-star3"><i class="fas fa-star"></i></label>
+            <input type="radio" id="edit-star2" name="edit-rating" value="2" /><label for="edit-star2"><i class="fas fa-star"></i></label>
+            <input type="radio" id="edit-star1" name="edit-rating" value="1" /><label for="edit-star1"><i class="fas fa-star"></i></label>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">عنوان</label>
+          <input type="text" id="edit-title" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-brand-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">متن نظر</label>
+          <textarea id="edit-text" rows="4" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-brand-500 resize-none"></textarea>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="submit" class="flex-1 py-3 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition">ذخیره تغییرات</button>
+          <button type="button" onclick="closeEditModal()" class="px-5 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition">انصراف</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Report Modal -->
+  <div id="report-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold">گزارش نظر</h3>
+        <button type="button" onclick="closeReportModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500">×</button>
+      </div>
+      <input type="hidden" id="report-review-id" />
+      <p class="text-sm text-slate-500 mb-4">دلیل گزارش را انتخاب کنید:</p>
+      <div class="space-y-2 mb-5" id="report-reasons">
+        <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50"><input type="radio" name="report-reason" value="spam" class="text-brand-600" /> <span class="text-sm">اسپم یا تبلیغات</span></label>
+        <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50"><input type="radio" name="report-reason" value="fake" class="text-brand-600" /> <span class="text-sm">نظر جعلی یا نادرست</span></label>
+        <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50"><input type="radio" name="report-reason" value="offensive" class="text-brand-600" /> <span class="text-sm">محتوای توهین‌آمیز</span></label>
+        <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50"><input type="radio" name="report-reason" value="other" class="text-brand-600" /> <span class="text-sm">سایر موارد</span></label>
+      </div>
+      <button type="button" onclick="submitReport()" class="w-full py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition">ارسال گزارش</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-xl shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50"></div>
+
+  <script>
+    // ====================== Data ======================
+    const businesses = [
+      { id: 1, name: "دیجی‌کالا", category: "فروشگاه اینترنتی", rating: 4.6, reviews: 12, logo: "DK", color: "bg-red-500", domain: "digikala.com", icon: "fa-shopping-cart", verified: true },
+      { id: 2, name: "اسنپ", category: "حمل‌ونقل", rating: 4.3, reviews: 8, logo: "SN", color: "bg-green-500", domain: "snapp.ir", icon: "fa-car", verified: true },
+      { id: 3, name: "کافه‌بازار", category: "نرم‌افزار", rating: 4.8, reviews: 5, logo: "CB", color: "bg-blue-500", domain: "cafebazaar.ir", icon: "fa-mobile-alt", verified: true },
+      { id: 4, name: "بانک ملت", category: "خدمات مالی", rating: 3.9, reviews: 3, logo: "BM", color: "bg-yellow-500", domain: "bankmellat.ir", icon: "fa-university", verified: true },
+      { id: 5, name: "ایرانسل", category: "مخابرات", rating: 3.7, reviews: 7, logo: "IR", color: "bg-yellow-400", domain: "irancell.ir", icon: "fa-signal", verified: true },
+      { id: 6, name: "تپسی", category: "حمل‌ونقل", rating: 4.5, reviews: 4, logo: "TP", color: "bg-orange-500", domain: "tapsi.ir", icon: "fa-taxi", verified: true },
+      { id: 7, name: "آمازون", category: "فروشگاه اینترنتی", rating: 4.4, reviews: 2, logo: "AM", color: "bg-slate-800", domain: "amazon.com", icon: "fa-box", verified: true },
+      { id: 8, name: "اسنپ‌فود", category: "رستوران و غذا", rating: 4.2, reviews: 9, logo: "SF", color: "bg-pink-500", domain: "snappfood.ir", icon: "fa-utensils", verified: true },
+      { id: 9, name: "دیجی‌پی", category: "خدمات مالی", rating: 4.1, reviews: 1, logo: "DP", color: "bg-indigo-500", domain: "digipay.ir", icon: "fa-wallet", verified: true },
+      { id: 10, name: "همراه اول", category: "مخابرات", rating: 3.8, reviews: 6, logo: "HA", color: "bg-blue-600", domain: "mci.ir", icon: "fa-phone", verified: true },
+      { id: 11, name: "علی‌بابا", category: "سفر", rating: 4.0, reviews: 0, logo: "AB", color: "bg-orange-600", domain: "alibaba.ir", icon: "fa-plane", verified: true },
+      { id: 12, name: "جاباما", category: "سفر", rating: 4.3, reviews: 1, logo: "JB", color: "bg-teal-500", domain: "jabama.com", icon: "fa-hotel", verified: true },
+      { id: 13, name: "دیوار", category: "نرم‌افزار", rating: 4.5, reviews: 11, logo: "DW", color: "bg-red-600", domain: "divar.ir", icon: "fa-bullhorn", verified: true },
+      { id: 14, name: "شیپور", category: "نرم‌افزار", rating: 4.0, reviews: 0, logo: "SH", color: "bg-purple-500", domain: "sheypoor.com", icon: "fa-tags", verified: true },
+      { id: 15, name: "بانک سامان", category: "خدمات مالی", rating: 4.2, reviews: 2, logo: "BS", color: "bg-cyan-600", domain: "sb24.ir", icon: "fa-landmark", verified: true },
+      { id: 16, name: "مقداد آی‌تی", category: "فروشگاه اینترنتی", rating: 4.7, reviews: 3, logo: "MI", color: "bg-emerald-600", domain: "meghdadit.com", icon: "fa-laptop", verified: true },
+      { id: 17, name: "بیمه ایران", category: "بیمه", rating: 3.6, reviews: 0, logo: "BI", color: "bg-green-700", domain: "iraninsurance.ir", icon: "fa-shield-alt", verified: true },
+      { id: 18, name: "اسنپ‌دکتر", category: "سلامت", rating: 4.4, reviews: 1, logo: "SD", color: "bg-rose-500", domain: "snapp.doctor", icon: "fa-user-md", verified: true },
+      { id: 19, name: "فیدیبو", category: "نرم‌افزار", rating: 4.6, reviews: 4, logo: "FD", color: "bg-amber-500", domain: "fidibo.com", icon: "fa-book", verified: true },
+      { id: 20, name: "کافه بازار بازی", category: "نرم‌افزار", rating: 4.3, reviews: 0, logo: "CG", color: "bg-violet-500", domain: "cafebazaar.ir", icon: "fa-gamepad", verified: true },
+      { id: 21, name: "رستوران شاندیز", category: "رستوران و غذا", rating: 4.5, reviews: 2, logo: "RS", color: "bg-red-400", domain: "", icon: "fa-utensils", verified: false },
+      { id: 22, name: "هتل پارسیان", category: "سفر", rating: 4.1, reviews: 1, logo: "HP", color: "bg-slate-600", domain: "parsianhotels.com", icon: "fa-building", verified: true },
+      { id: 23, name: "داروخانه آنلاین", category: "سلامت", rating: 4.0, reviews: 0, logo: "DO", color: "bg-green-500", domain: "", icon: "fa-pills", verified: true },
+      { id: 24, name: "بیمه پاسارگاد", category: "بیمه", rating: 3.9, reviews: 1, logo: "BP", color: "bg-blue-700", domain: "bimehpasargad.com", icon: "fa-file-medical", verified: true }
+    ];
+
+    const categories = [
+      { name: "فروشگاه", icon: "fa-shopping-bag", color: "bg-blue-50 text-blue-600", count: "۴۲ هزار" },
+      { name: "رستوران", icon: "fa-utensils", color: "bg-orange-50 text-orange-600", count: "۲۸ هزار" },
+      { name: "نرم‌افزار", icon: "fa-laptop-code", color: "bg-emerald-50 text-emerald-600", count: "۱۵ هزار" },
+      { name: "خدمات مالی", icon: "fa-university", color: "bg-purple-50 text-purple-600", count: "۹ هزار" },
+      { name: "سلامت", icon: "fa-heartbeat", color: "bg-rose-50 text-rose-600", count: "۱۲ هزار" },
+      { name: "سفر", icon: "fa-plane", color: "bg-cyan-50 text-cyan-600", count: "۷ هزار" },
+      { name: "مخابرات", icon: "fa-mobile-alt", color: "bg-yellow-50 text-yellow-600", count: "۵ هزار" },
+      { name: "بیمه", icon: "fa-shield-alt", color: "bg-indigo-50 text-indigo-600", count: "۴ هزار" },
+      { name: "حمل‌ونقل", icon: "fa-car", color: "bg-green-50 text-green-600", count: "۶ هزار" },
+      { name: "آموزش", icon: "fa-graduation-cap", color: "bg-pink-50 text-pink-600", count: "۸ هزار" },
+      { name: "املاک", icon: "fa-home", color: "bg-teal-50 text-teal-600", count: "۱۱ هزار" },
+      { name: "خودرو", icon: "fa-car-side", color: "bg-slate-50 text-slate-600", count: "۳ هزار" }
+    ];
+
+    const defaultReviews = [
+      { id: 1, userId: null, user: "سارا م.", business: "دیجی‌کالا", rating: 5, title: "ارسال سریع و بسته‌بندی عالی", text: "سفارشم رو در کمتر از ۲۴ ساعت دریافت کردم. کیفیت محصول دقیقاً مطابق توضیحات بود و پشتیبانی خیلی خوب پاسخگو بود.", date: "۲ روز پیش", helpful: 24, images: [], reported: false },
+      { id: 2, userId: null, user: "امیرحسین ر.", business: "اسنپ", rating: 4, title: "راننده‌های حرفه‌ای", text: "تقریباً همیشه راننده‌های مؤدب و تمیز پیدا می‌کنم. فقط گاهی در ساعات پیک قیمت‌ها بالا می‌ره.", date: "۵ روز پیش", helpful: 18, images: [], reported: false },
+      { id: 3, userId: null, user: "نازنین ک.", business: "کافه‌بازار", rating: 5, title: "بهترین فروشگاه اپ ایرانی", text: "دانلود سریع، امنیت بالا و تنوع برنامه‌ها فوق‌العاده‌ست. سال‌هاست استفاده می‌کنم و هیچوقت مشکل نداشتم.", date: "۱ هفته پیش", helpful: 41, images: [], reported: false },
+      { id: 4, userId: null, user: "محمد ت.", business: "بانک ملت", rating: 3, title: "اپلیکیشن نیاز به بهبود داره", text: "خدمات بانکی خوبه اما اپلیکیشن موبایل گاهی کند کار می‌کنه و رابط کاربری قدیمی به نظر می‌رسه.", date: "۳ روز پیش", helpful: 9, images: [], reported: false },
+      { id: 5, userId: null, user: "فاطمه س.", business: "تپسی", rating: 5, title: "تجربه عالی با تخفیف‌ها", text: "همیشه تخفیف‌های خوبی داره و راننده‌ها دقیق هستن. برای مسیرهای داخل شهر بهترین گزینه‌ست.", date: "۴ روز پیش", helpful: 15, images: [], reported: false },
+      { id: 6, userId: null, user: "رضا پ.", business: "ایرانسل", rating: 2, title: "پوشش ضعیف در برخی مناطق", text: "در مناطق شمالی شهر پوشش شبکه خیلی ضعیف می‌شه و اینترنت قطع و وصل می‌شه. امیدوارم بهبود پیدا کنه.", date: "۶ روز پیش", helpful: 33, images: [], reported: false },
+      { id: 7, userId: null, user: "مینا ا.", business: "اسنپ‌فود", rating: 4, title: "تنوع رستوران‌ها عالیه", text: "تقریباً هر رستورانی که بخوای پیدا می‌شه. زمان تحویل هم معمولاً خوبه.", date: "۱ روز پیش", helpful: 12, images: [], reported: false },
+      { id: 8, userId: null, user: "حسین ن.", business: "دیوار", rating: 5, title: "بهترین سایت خرید و فروش", text: "سال‌هاست با دیوار خرید و فروش می‌کنم. امنیت و راحتی استفادهش بی‌نظیره.", date: "۳ روز پیش", helpful: 27, images: [], reported: false }
+    ];
+
+    const REVIEWS_KEY = "trustfa_reviews";
+    const LIKES_KEY = "trustfa_likes";
+    const REPORTS_KEY = "trustfa_reports";
+
+    function loadReviews() {
+      try {
+        const saved = localStorage.getItem(REVIEWS_KEY);
+        if (saved) return JSON.parse(saved);
+      } catch {}
+      return JSON.parse(JSON.stringify(defaultReviews));
+    }
+    function saveReviews() {
+      try { localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews)); } catch {}
+    }
+    function getLikes() {
+      try { return JSON.parse(localStorage.getItem(LIKES_KEY) || "{}"); } catch { return {}; }
+    }
+    function saveLikes(likes) {
+      localStorage.setItem(LIKES_KEY, JSON.stringify(likes));
+    }
+    function getReports() {
+      try { return JSON.parse(localStorage.getItem(REPORTS_KEY) || "[]"); } catch { return []; }
+    }
+    function saveReports(reports) {
+      localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+    }
+
+    let reviews = loadReviews();
+    let visibleBusinesses = 6;
+    let showAllCategories = false;
+    let currentCategoryFilter = null;
+    let selectedFiles = [];
+    let currentReviewFilter = "all";
+
+    // ====================== Page Navigation ======================
+    function showPage(name) {
+      if (name === "admin") setTimeout(() => loadAdminPage(), 50);
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + name).classList.add('active');
+      window.scrollTo(0, 0);
+    }
+
+    // ====================== Helpers ======================
+    function starsHTML(rating, size = "text-sm") {
+      let html = "";
+      for (let i = 1; i <= 5; i++) {
+        if (i <= Math.floor(rating)) html += `<i class="fas fa-star text-amber-400 ${size}"></i>`;
+        else if (i - 0.5 <= rating) html += `<i class="fas fa-star-half-alt text-amber-400 ${size}"></i>`;
+        else html += `<i class="far fa-star text-slate-300 ${size}"></i>`;
+      }
+      return html;
+    }
+
+    // آواتار رنگی بر اساس نام کاربر
+    const AVATAR_COLORS = [
+      "from-emerald-400 to-teal-600",
+      "from-blue-400 to-indigo-600",
+      "from-violet-400 to-purple-600",
+      "from-rose-400 to-pink-600",
+      "from-amber-400 to-orange-600",
+      "from-cyan-400 to-sky-600",
+      "from-fuchsia-400 to-pink-600",
+      "from-lime-400 to-green-600",
+      "from-red-400 to-rose-600",
+      "from-indigo-400 to-blue-700"
+    ];
+    function getAvatarColor(name) {
+      const s = (name || "?").toString();
+      let h = 0;
+      for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+      return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+    }
+    function getInitials(name) {
+      if (!name || !name.trim()) return "?";
+      const parts = name.trim().split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+      return parts[0].charAt(0).toUpperCase();
+    }
+    function avatarHTML(name, sizeClass = "w-11 h-11", photoUrl) {
+      const initials = getInitials(name);
+      const color = getAvatarColor(name);
+      if (photoUrl) {
+        return `<div class="${sizeClass} rounded-full overflow-hidden shadow-md shrink-0 ring-2 ring-white bg-slate-100" title="${name || ""}"><img src="${photoUrl}" alt="${name || ""}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='${initials}';this.parentElement.className='${sizeClass} rounded-full bg-gradient-to-br ${color} flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0 ring-2 ring-white'" /></div>`;
+      }
+      return `<div class="${sizeClass} rounded-full bg-gradient-to-br ${color} flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0 ring-2 ring-white" title="${name || ""}">${initials}</div>`;
+    }
+
+    // لوگوی کسب‌وکار: favicon سایت + آیکون Font Awesome + حروف
+    function bizLogoHTML(b, sizeClass = "w-14 h-14") {
+      const icon = b.icon || "fa-store";
+      const letter = b.logo || (b.name || "?").charAt(0);
+      const color = b.color || "bg-slate-500";
+      const domain = b.domain || "";
+      const imgSrc = domain
+        ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
+        : "";
+      const uid = "logo-" + (b.id || Math.random().toString(36).slice(2));
+      if (imgSrc) {
+        return `<div class="${sizeClass} rounded-xl ${color} flex items-center justify-center text-white shrink-0 overflow-hidden relative shadow-sm" id="${uid}">
+          <img src="${imgSrc}" alt="${b.name}" class="w-full h-full object-contain p-1.5 bg-white absolute inset-0" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+          <div class="hidden w-full h-full items-center justify-center flex-col gap-0.5">
+            <i class="fas ${icon} text-lg opacity-90"></i>
+            <span class="text-[10px] font-bold leading-none">${letter}</span>
+          </div>
+        </div>`;
+      }
+      return `<div class="${sizeClass} rounded-xl ${color} flex items-center justify-center text-white shrink-0 flex-col gap-0.5 shadow-sm">
+        <i class="fas ${icon} text-lg opacity-95"></i>
+        <span class="text-[10px] font-bold leading-none">${letter}</span>
+      </div>`;
+    }
+    function getUserPhoto(userId, userName) {
+      if (!userId) return null;
+      try {
+        const users = JSON.parse(localStorage.getItem("trustfa_users") || "[]");
+        const u = users.find(x => String(x.id) === String(userId));
+        if (u && u.avatar) return u.avatar;
+      } catch {}
+      return null;
+    }
+
+    function showToast(message, duration = 3000) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.remove("opacity-0", "pointer-events-none");
+      toast.classList.add("opacity-100");
+      setTimeout(() => {
+        toast.classList.add("opacity-0", "pointer-events-none");
+        toast.classList.remove("opacity-100");
+      }, duration);
+    }
+
+    // ====================== Categories ======================
+    function renderCategories() {
+      const grid = document.getElementById("categories-grid");
+      const toShow = showAllCategories ? categories : categories.slice(0, 6);
+      grid.innerHTML = toShow.map(c => `
+        <div class="category-card bg-white rounded-2xl p-6 text-center shadow-sm hover:shadow-md transition cursor-pointer border border-slate-100" data-category="${c.name}">
+          <div class="w-14 h-14 mx-auto mb-3 rounded-xl ${c.color} flex items-center justify-center text-2xl"><i class="fas ${c.icon}"></i></div>
+          <div class="font-semibold">${c.name}</div>
+          <div class="text-xs text-slate-400 mt-1">${c.count} کسب‌وکار</div>
+        </div>
+      `).join("");
+      document.getElementById("show-all-categories").textContent = showAllCategories ? "نمایش کمتر" : "مشاهده همه";
+      document.querySelectorAll(".category-card").forEach(card => {
+        card.addEventListener("click", () => {
+          currentCategoryFilter = card.dataset.category;
+          visibleBusinesses = 6;
+          renderBusinesses();
+          document.getElementById("businesses-section").scrollIntoView({ behavior: "smooth" });
+          showToast("فیلتر: " + card.dataset.category);
+        });
+      });
+    }
+
+    // ====================== Businesses ======================
+    function renderBusinesses() {
+      const grid = document.getElementById("businesses-grid");
+      let filtered = businesses;
+      if (currentCategoryFilter) {
+        filtered = businesses.filter(b => b.category.includes(currentCategoryFilter) || currentCategoryFilter.includes(b.category.split(" ")[0]));
+      }
+      const toShow = filtered.slice(0, visibleBusinesses);
+
+      if (toShow.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-16 text-slate-400"><i class="fas fa-search text-4xl mb-4"></i><p>کسب‌وکاری یافت نشد.</p><button id="clear-filter" class="mt-4 text-brand-600 font-medium hover:underline">پاک کردن فیلتر</button></div>`;
+        document.getElementById("clear-filter")?.addEventListener("click", () => { currentCategoryFilter = null; visibleBusinesses = 6; renderBusinesses(); });
+        document.getElementById("show-more-businesses").classList.add("hidden");
+        return;
+      }
+
+      grid.innerHTML = toShow.map(b => `
+        <div class="bg-white rounded-2xl border border-slate-100 p-6 hover:shadow-lg transition review-card">
+          <div class="flex items-start gap-4">
+            ${bizLogoHTML(b, "w-14 h-14")}
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-lg truncate">${b.name}</h3>
+                ${b.verified ? '<i class="fas fa-check-circle text-brand-500 text-sm"></i>' : ''}
+              </div>
+              <p class="text-sm text-slate-500">${b.category}</p>
+              <div class="flex items-center gap-2 mt-2">
+                <div class="flex">${starsHTML(b.rating)}</div>
+                <span class="font-semibold text-sm">${b.rating}</span>
+                <span class="text-xs text-slate-400">(${b.reviews.toLocaleString('fa-IR')} نظر)</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <button onclick="openBusiness(${b.id})" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium hover:bg-slate-50 transition">مشاهده</button>
+            <button class="flex-1 py-2.5 rounded-xl bg-brand-50 text-brand-700 text-sm font-medium hover:bg-brand-100 transition write-review-btn" data-business="${b.name}">نوشتن نظر</button>
+          </div>
+        </div>
+      `).join("");
+
+      const moreBtn = document.getElementById("show-more-businesses");
+      if (visibleBusinesses >= filtered.length) moreBtn.classList.add("hidden");
+      else {
+        moreBtn.classList.remove("hidden");
+        moreBtn.textContent = `مشاهده بیشتر (${filtered.length - visibleBusinesses} مورد دیگر)`;
+      }
+
+      const filterInfo = document.getElementById("filter-info");
+      if (currentCategoryFilter) {
+        filterInfo.innerHTML = `<div class="flex items-center gap-2 text-sm"><span class="text-slate-500">فیلتر:</span><span class="px-3 py-1 bg-brand-50 text-brand-700 rounded-full font-medium">${currentCategoryFilter}</span><button id="clear-cat-filter" class="text-slate-400 hover:text-red-500"><i class="fas fa-times"></i></button></div>`;
+        document.getElementById("clear-cat-filter")?.addEventListener("click", () => { currentCategoryFilter = null; visibleBusinesses = 6; renderBusinesses(); });
+      } else filterInfo.innerHTML = "";
+
+      document.querySelectorAll(".write-review-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.getElementById("business-name").value = btn.dataset.business;
+          document.getElementById("write").scrollIntoView({ behavior: "smooth" });
+        });
+      });
+    }
+
+    function openBusiness(id) {
+      const b = businesses.find(x => x.id === id);
+      if (!b) return;
+      const logoEl = document.getElementById("biz-logo");
+      if (logoEl) {
+        const html = bizLogoHTML(b, "w-24 h-24").replace("rounded-xl", "rounded-2xl");
+        logoEl.outerHTML = html.replace(/^<div /, '<div id="biz-logo" ');
+      }
+      document.getElementById("biz-name").textContent = b.name;
+      document.getElementById("biz-category").textContent = b.category;
+      document.getElementById("biz-rating").textContent = b.rating;
+      document.getElementById("biz-stars").innerHTML = starsHTML(b.rating, "text-lg");
+      document.getElementById("biz-reviews").textContent = b.reviews.toLocaleString('fa-IR') + " نظر";
+
+      const dist = [{star:5,pct:68},{star:4,pct:18},{star:3,pct:8},{star:2,pct:4},{star:1,pct:2}];
+      document.getElementById("rating-dist").innerHTML = dist.map(d => `
+        <div class="flex items-center gap-3 text-sm">
+          <span class="w-8">${d.star} <i class="fas fa-star text-amber-400 text-xs"></i></span>
+          <div class="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-brand-500 rounded-full" style="width:${d.pct}%"></div></div>
+          <span class="w-10 text-left text-slate-500">${d.pct}٪</span>
+        </div>
+      `).join("");
+
+      const bizReviews = reviews.filter(r => r.business === b.name && !r.hidden);
+      document.getElementById("biz-reviews-list").innerHTML = (bizReviews.length ? bizReviews : reviews.filter(r => !r.hidden).slice(0,3)).map(r => `
+        <div class="bg-white rounded-2xl border border-slate-100 p-6">
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="flex items-center gap-3 min-w-0">
+              ${avatarHTML(r.user || "کاربر", "w-11 h-11")}
+              <div class="min-w-0">
+                <div class="font-bold text-slate-800 truncate">${r.user || "کاربر"}</div>
+                <div class="text-xs text-slate-400 mt-0.5">${r.date}</div>
+              </div>
+            </div>
+            <div class="flex shrink-0">${starsHTML(r.rating)}</div>
+          </div>
+          <h4 class="font-bold mb-2">${r.title}</h4>
+          <p class="text-sm text-slate-600 leading-relaxed">${r.text}</p>
+        </div>
+      `).join("");
+
+      showPage('business');
+    }
+
+    // ====================== Reviews ======================
+    function renderReviews(filter) {
+      if (filter !== undefined) currentReviewFilter = filter;
+      filter = currentReviewFilter;
+      const list = document.getElementById("reviews-list");
+      const currentUser = typeof getCurrentUser === "function" ? getCurrentUser() : null;
+      const likes = getLikes();
+      const userLikes = currentUser ? (likes[currentUser.id] || []) : [];
+      const myReports = getReports();
+
+      // نظرات گزارش‌شده توسط این کاربر را پنهان نکنیم ولی علامت بزنیم؛ نظرات خیلی گزارش‌شده مخفی
+      let filtered = reviews.filter(r => !r.hidden);
+      if (filter !== "all") filtered = filtered.filter(r => r.rating === parseInt(filter));
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="col-span-2 text-center py-12 text-slate-400">نظری یافت نشد.</div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(r => {
+        const isOwner = currentUser && r.userId && String(r.userId) === String(currentUser.id);
+        const alreadyLiked = userLikes.includes(r.id) || userLikes.includes(String(r.id));
+        const alreadyReported = myReports.some(rep => String(rep.reviewId) === String(r.id) && currentUser && String(rep.userId) === String(currentUser.id));
+
+        const userName = r.user || "کاربر";
+        const userPhoto = getUserPhoto(r.userId, userName) || r.avatar || null;
+        return `
+        <div class="bg-white rounded-2xl border border-slate-100 p-6 review-card" data-review-id="${r.id}">
+          <div class="flex items-start justify-between gap-3 mb-4">
+            <div class="flex items-center gap-3 min-w-0">
+              ${avatarHTML(userName, "w-12 h-12", userPhoto)}
+              <div class="min-w-0">
+                <div class="font-bold text-slate-800 truncate">${userName}</div>
+                <div class="text-xs text-slate-400 mt-0.5">${r.date}${r.edited ? " · ویرایش‌شده" : ""}</div>
+              </div>
+            </div>
+            <div class="flex shrink-0 pt-1">${starsHTML(r.rating)}</div>
+          </div>
+          <div class="text-xs font-semibold text-brand-600 mb-1.5">${r.business}</div>
+          <h4 class="font-bold text-slate-900 mb-2">${r.title}</h4>
+          <p class="text-sm text-slate-600 leading-relaxed mb-4 whitespace-pre-wrap">${r.text}</p>
+          ${r.images && r.images.length ? `<div class="flex gap-2 mb-4 overflow-x-auto pb-1">${r.images.map(img => `<img src="${img}" class="w-20 h-20 object-cover rounded-lg border border-slate-100" alt="" />`).join("")}</div>` : ""}
+          <div class="flex items-center flex-wrap gap-3 text-xs text-slate-400 border-t border-slate-50 pt-3">
+            <button type="button" class="helpful-btn flex items-center gap-1.5 transition ${alreadyLiked ? "text-brand-600 font-medium" : "hover:text-brand-600"}" data-id="${r.id}" ${alreadyLiked ? "disabled" : ""}>
+              <i class="${alreadyLiked ? "fas" : "far"} fa-thumbs-up"></i>
+              <span>مفید (${r.helpful || 0})</span>
+            </button>
+            <button type="button" class="report-btn flex items-center gap-1.5 transition ${alreadyReported ? "text-red-400" : "hover:text-red-500"}" data-id="${r.id}" ${alreadyReported ? "disabled" : ""}>
+              <i class="far fa-flag"></i> ${alreadyReported ? "گزارش شد" : "گزارش"}
+            </button>
+            ${isOwner ? `
+              <button type="button" class="edit-btn flex items-center gap-1.5 hover:text-brand-600 transition" data-id="${r.id}"><i class="far fa-edit"></i> ویرایش</button>
+              <button type="button" class="delete-btn flex items-center gap-1.5 hover:text-red-500 transition" data-id="${r.id}"><i class="far fa-trash-alt"></i> حذف</button>
+            ` : ""}
+          </div>
+        </div>`;
+      }).join("");
+
+      // لایک — فقط یک‌بار
+      document.querySelectorAll(".helpful-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const user = getCurrentUser();
+          if (!user) { showToast("برای لایک ابتدا وارد شوید"); setTimeout(() => showPage("login"), 700); return; }
+          const id = btn.dataset.id;
+          const likesMap = getLikes();
+          if (!likesMap[user.id]) likesMap[user.id] = [];
+          if (likesMap[user.id].some(x => String(x) === String(id))) {
+            showToast("قبلاً این نظر را مفید دانسته‌اید");
+            return;
+          }
+          const review = reviews.find(r => String(r.id) === String(id));
+          if (!review) return;
+          review.helpful = (review.helpful || 0) + 1;
+          likesMap[user.id].push(id);
+          saveLikes(likesMap);
+          saveReviews();
+          showToast("نظر شما ثبت شد ✓");
+          renderReviews();
+        });
+      });
+
+      // گزارش
+      document.querySelectorAll(".report-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const user = getCurrentUser();
+          if (!user) { showToast("برای گزارش ابتدا وارد شوید"); setTimeout(() => showPage("login"), 700); return; }
+          openReportModal(btn.dataset.id);
+        });
+      });
+
+      // ویرایش
+      document.querySelectorAll(".edit-btn").forEach(btn => {
+        btn.addEventListener("click", () => openEditModal(btn.dataset.id));
+      });
+
+      // حذف
+      document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          if (!confirm("آیا از حذف این نظر مطمئن هستید؟")) return;
+          const id = btn.dataset.id;
+          const idx = reviews.findIndex(r => String(r.id) === String(id));
+          if (idx === -1) return;
+          const removed = reviews[idx];
+          reviews.splice(idx, 1);
+          saveReviews();
+          // کاهش تعداد نظرات کسب‌وکار
+          const biz = businesses.find(b => b.name === removed.business);
+          if (biz && biz.reviews > 0) biz.reviews--;
+          renderReviews();
+          renderBusinesses();
+          showToast("نظر حذف شد");
+        });
+      });
+    }
+
+    function openEditModal(id) {
+      const r = reviews.find(x => String(x.id) === String(id));
+      if (!r) return;
+      document.getElementById("edit-review-id").value = r.id;
+      document.getElementById("edit-title").value = r.title;
+      document.getElementById("edit-text").value = r.text;
+      document.querySelectorAll('input[name="edit-rating"]').forEach(inp => {
+        inp.checked = parseInt(inp.value) === r.rating;
+      });
+      const modal = document.getElementById("edit-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+    function closeEditModal() {
+      const modal = document.getElementById("edit-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+    function openReportModal(id) {
+      document.getElementById("report-review-id").value = id;
+      document.querySelectorAll('input[name="report-reason"]').forEach(r => r.checked = false);
+      const modal = document.getElementById("report-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+    function closeReportModal() {
+      const modal = document.getElementById("report-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+    function submitReport() {
+      const user = getCurrentUser();
+      if (!user) return;
+      const reviewId = document.getElementById("report-review-id").value;
+      const reasonEl = document.querySelector('input[name="report-reason"]:checked');
+      if (!reasonEl) { showToast("دلیل گزارش را انتخاب کنید"); return; }
+      const reports = getReports();
+      if (reports.some(r => String(r.reviewId) === String(reviewId) && String(r.userId) === String(user.id))) {
+        showToast("قبلاً این نظر را گزارش کرده‌اید");
+        closeReportModal();
+        return;
+      }
+      reports.push({
+        reviewId,
+        userId: user.id,
+        reason: reasonEl.value,
+        at: new Date().toISOString()
+      });
+      saveReports(reports);
+
+      // اگر ۳ گزارش یا بیشتر → مخفی کردن نظر
+      const count = reports.filter(r => String(r.reviewId) === String(reviewId)).length;
+      const review = reviews.find(r => String(r.id) === String(reviewId));
+      if (review && count >= 3) {
+        review.hidden = true;
+        saveReviews();
+      }
+      closeReportModal();
+      showToast("گزارش شما ثبت شد. ممنون از همکاری‌تان");
+      renderReviews();
+    }
+
+    document.getElementById("edit-review-form").addEventListener("submit", e => {
+      e.preventDefault();
+      const id = document.getElementById("edit-review-id").value;
+      const r = reviews.find(x => String(x.id) === String(id));
+      if (!r) return;
+      const ratingInput = document.querySelector('input[name="edit-rating"]:checked');
+      if (!ratingInput) { showToast("امتیاز را انتخاب کنید"); return; }
+      r.rating = parseInt(ratingInput.value);
+      r.title = document.getElementById("edit-title").value.trim();
+      r.text = document.getElementById("edit-text").value.trim();
+      r.edited = true;
+      r.date = "همین الان";
+      saveReviews();
+      closeEditModal();
+      renderReviews();
+      showToast("نظر ویرایش شد ✓");
+    });
+
+    // ====================== Image Upload (موبایل + دسکتاپ) ======================
+    const uploadZone = document.getElementById("upload-zone");
+    const photoInput = document.getElementById("photo-input");
+
+    // درگ و دراپ برای دسکتاپ
+    ["dragenter", "dragover"].forEach(evt => {
+      uploadZone.addEventListener(evt, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadZone.classList.add("border-brand-400", "bg-white/5");
+      });
+    });
+    ["dragleave", "drop"].forEach(evt => {
+      uploadZone.addEventListener(evt, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadZone.classList.remove("border-brand-400", "bg-white/5");
+      });
+    });
+    uploadZone.addEventListener("drop", e => {
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+        handleFiles(e.dataTransfer.files);
+      }
+    });
+
+    // انتخاب فایل با لمس/کلیک (input روی کل باکس قرار دارد)
+    photoInput.addEventListener("change", e => {
+      if (e.target.files && e.target.files.length) {
+        handleFiles(e.target.files);
+      }
+      // ریست برای انتخاب مجدد همان فایل
+      e.target.value = "";
+    });
+
+    function handleFiles(files) {
+      const remaining = 5 - selectedFiles.length;
+      if (remaining <= 0) {
+        showToast("حداکثر ۵ عکس می‌توانید آپلود کنید");
+        return;
+      }
+      const list = Array.from(files).filter(f => f.type.startsWith("image/") || /\.(jpe?g|png|webp|gif)$/i.test(f.name));
+      if (!list.length) {
+        showToast("فقط فایل تصویری انتخاب کنید");
+        return;
+      }
+      const toAdd = list.slice(0, remaining);
+      let loaded = 0;
+      toAdd.forEach(file => {
+        if (file.size > 8 * 1024 * 1024) {
+          showToast("حجم عکس «" + (file.name || "") + "» زیاد است");
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = ev => {
+          selectedFiles.push({ dataUrl: ev.target.result, name: file.name || "عکس" });
+          loaded++;
+          renderPreviews();
+          if (loaded >= toAdd.length) {
+            showToast(toAdd.length + " عکس اضافه شد ✓");
+          }
+        };
+        reader.onerror = () => showToast("خطا در خواندن فایل");
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderPreviews() {
+      const box = document.getElementById("preview-images");
+      if (!selectedFiles.length) { box.innerHTML = ""; return; }
+      box.innerHTML = selectedFiles.map((item, idx) => `
+        <div class="relative group">
+          <img src="${item.dataUrl}" alt="${item.name || ''}" class="w-20 h-20 object-cover rounded-lg border-2 border-white/30 shadow" />
+          <button type="button" class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center shadow remove-img" data-idx="${idx}">×</button>
+        </div>
+      `).join("");
+      document.querySelectorAll(".remove-img").forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectedFiles.splice(parseInt(btn.dataset.idx), 1);
+          renderPreviews();
+        });
+      });
+    }
+
+    // ====================== پیشنهاد خودکار نام کسب‌وکار ======================
+    (function setupBusinessSuggest() {
+      const input = document.getElementById("business-name");
+      const box = document.getElementById("business-suggest");
+      if (!input || !box) return;
+
+      function hide() {
+        box.classList.add("hidden");
+        box.innerHTML = "";
+      }
+
+      function showMatches(q) {
+        const query = (q || "").trim().toLowerCase().replace(/\s/g, "");
+        if (query.length < 1) { hide(); return; }
+
+        const matches = businesses.filter(b => {
+          const name = (b.name || "").toLowerCase().replace(/\s/g, "");
+          const cat = (b.category || "").toLowerCase();
+          return name.includes(query) || (b.name || "").toLowerCase().includes(q.trim().toLowerCase()) || cat.includes(query);
+        }).slice(0, 8);
+
+        if (!matches.length) {
+          box.innerHTML = `<div class="px-4 py-3 text-sm text-slate-400">موردی یافت نشد — می‌توانید نام جدید بنویسید</div>`;
+          box.classList.remove("hidden");
+          return;
+        }
+
+        box.innerHTML = matches.map(b => `
+          <button type="button" class="biz-suggest-item w-full flex items-center gap-3 px-4 py-3 text-right hover:bg-white/10 transition border-0 bg-transparent text-white cursor-pointer" data-name="${b.name}">
+            ${typeof bizLogoHTML === "function" ? bizLogoHTML(b, "w-9 h-9") : `<span class="w-9 h-9 rounded-lg ${b.color} flex items-center justify-center text-xs font-bold">${b.logo}</span>`}
+            <span class="flex-1 min-w-0">
+              <span class="block font-medium text-sm truncate">${b.name}</span>
+              <span class="block text-xs text-slate-400">${b.category}</span>
+            </span>
+            <span class="text-xs text-amber-400 shrink-0">${b.rating || "—"} ★</span>
+          </button>
+        `).join("");
+        box.classList.remove("hidden");
+
+        box.querySelectorAll(".biz-suggest-item").forEach(btn => {
+          btn.addEventListener("mousedown", e => {
+            e.preventDefault();
+            input.value = btn.dataset.name;
+            hide();
+            input.focus();
+          });
+        });
+      }
+
+      input.addEventListener("input", () => showMatches(input.value));
+      input.addEventListener("focus", () => {
+        if (input.value.trim().length >= 1) showMatches(input.value);
+      });
+      input.addEventListener("blur", () => setTimeout(hide, 180));
+      input.addEventListener("keydown", e => {
+        if (e.key === "Escape") hide();
+      });
+    })();
+
+    // ====================== Form Submit (نظر جدید + آپدیت تعداد نظرات) ======================
+    document.getElementById("review-form").addEventListener("submit", e => {
+      e.preventDefault();
+      const ratingInput = document.querySelector('input[name="rating"]:checked');
+      if (!ratingInput) { showToast("لطفاً امتیاز خود را انتخاب کنید"); return; }
+      const businessName = document.getElementById("business-name").value.trim();
+      const title = document.getElementById("review-title").value.trim();
+      const text = document.getElementById("review-text").value.trim();
+      if (!businessName || !title || !text) { showToast("همه فیلدها را پر کنید"); return; }
+
+      const rating = parseInt(ratingInput.value);
+      const images = selectedFiles.map(f => f.dataUrl);
+      const currentUser = getCurrentUser();
+      if (!currentUser) {
+        showToast("برای ثبت نظر ابتدا وارد شوید");
+        setTimeout(() => showPage("login"), 800);
+        return;
+      }
+
+      const newReview = {
+        id: Date.now(),
+        userId: currentUser.id,
+        user: currentUser.name,
+        avatar: currentUser.avatar || null,
+        business: businessName,
+        rating,
+        title,
+        text,
+        date: "همین الان",
+        helpful: 0,
+        images,
+        reported: false,
+        hidden: false,
+        edited: false
+      };
+      reviews.unshift(newReview);
+      saveReviews();
+
+      // افزایش تعداد نظرات کسب‌وکار (از صفر/کم شروع شده و با هر نظر +1)
+      let biz = businesses.find(b => b.name === businessName);
+      if (biz) {
+        biz.reviews = (biz.reviews || 0) + 1;
+        // میانگین ساده امتیاز
+        biz.rating = Math.round(((biz.rating * (biz.reviews - 1)) + rating) / biz.reviews * 10) / 10;
+      } else {
+        // کسب‌وکار جدید
+        businesses.unshift({
+          id: Date.now(),
+          name: businessName,
+          category: "سایر",
+          rating: rating,
+          reviews: 1,
+          logo: businessName.charAt(0),
+          color: "bg-slate-500",
+          verified: false
+        });
+      }
+
+      renderReviews();
+      renderBusinesses();
+      showToast("نظر شما با موفقیت ثبت شد! 🎉" + (images.length ? " (با " + images.length + " عکس)" : ""));
+      e.target.reset();
+      selectedFiles = [];
+      renderPreviews();
+      document.querySelectorAll('.star-rating input').forEach(i => i.checked = false);
+      setTimeout(() => document.getElementById("reviews").scrollIntoView({ behavior: "smooth" }), 400);
+    });
+
+    // ====================== Filters ======================
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".filter-btn").forEach(b => {
+          b.classList.remove("bg-brand-600", "text-white");
+          b.classList.add("bg-white", "border", "border-slate-200");
+        });
+        btn.classList.add("bg-brand-600", "text-white");
+        btn.classList.remove("bg-white", "border", "border-slate-200");
+        renderReviews(btn.dataset.filter);
+      });
+    });
+
+    // ====================== Search (جستجوی کامل) ======================
+    function doSearch() {
+      const q = document.getElementById("search-input").value.trim().toLowerCase();
+      if (!q) {
+        currentCategoryFilter = null;
+        visibleBusinesses = 6;
+        renderBusinesses();
+        return;
+      }
+      // جستجو در نام و دسته‌بندی (پشتیبانی از حروف فارسی و انگلیسی)
+      const found = businesses.filter(b => {
+        const name = (b.name || "").toLowerCase();
+        const cat = (b.category || "").toLowerCase();
+        return name.includes(q) || cat.includes(q) || name.replace(/\s/g, "").includes(q.replace(/\s/g, ""));
+      });
+
+      currentCategoryFilter = null;
+      const grid = document.getElementById("businesses-grid");
+      const moreBtn = document.getElementById("show-more-businesses");
+      moreBtn.classList.add("hidden");
+
+      if (found.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-16 text-slate-400">
+            <i class="fas fa-search text-4xl mb-4"></i>
+            <p class="mb-2">نتیجه‌ای برای «${document.getElementById("search-input").value}» یافت نشد</p>
+            <button id="clear-search-empty" class="text-brand-600 font-medium hover:underline">نمایش همه کسب‌وکارها</button>
+          </div>`;
+        document.getElementById("clear-search-empty")?.addEventListener("click", () => {
+          document.getElementById("search-input").value = "";
+          visibleBusinesses = 6;
+          renderBusinesses();
+        });
+        document.getElementById("filter-info").innerHTML = "";
+        showToast("نتیجه‌ای یافت نشد");
+        document.getElementById("businesses-section").scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+
+      grid.innerHTML = found.map(b => `
+        <div class="bg-white rounded-2xl border border-slate-100 p-6 hover:shadow-lg transition review-card">
+          <div class="flex items-start gap-4">
+            ${bizLogoHTML(b, "w-14 h-14")}
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-lg truncate">${b.name}</h3>
+                ${b.verified ? '<i class="fas fa-check-circle text-brand-500 text-sm"></i>' : ''}
+              </div>
+              <p class="text-sm text-slate-500">${b.category}</p>
+              <div class="flex items-center gap-2 mt-2">
+                <div class="flex">${starsHTML(b.rating)}</div>
+                <span class="font-semibold text-sm">${b.rating}</span>
+                <span class="text-xs text-slate-400">(${(b.reviews || 0).toLocaleString('fa-IR')} نظر)</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <button onclick="openBusiness(${b.id})" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium hover:bg-slate-50 transition">مشاهده</button>
+            <button class="flex-1 py-2.5 rounded-xl bg-brand-50 text-brand-700 text-sm font-medium hover:bg-brand-100 transition write-review-btn" data-business="${b.name}">نوشتن نظر</button>
+          </div>
+        </div>
+      `).join("");
+
+      document.getElementById("filter-info").innerHTML = `
+        <div class="flex items-center gap-2 text-sm">
+          <span class="text-slate-500">${found.length} نتیجه برای «${document.getElementById("search-input").value}»</span>
+          <button id="clear-search" class="text-brand-600 hover:underline font-medium">نمایش همه</button>
+        </div>`;
+      document.getElementById("clear-search")?.addEventListener("click", () => {
+        document.getElementById("search-input").value = "";
+        visibleBusinesses = 6;
+        renderBusinesses();
+      });
+      document.querySelectorAll(".write-review-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.getElementById("business-name").value = btn.dataset.business;
+          document.getElementById("write").scrollIntoView({ behavior: "smooth" });
+        });
+      });
+      document.getElementById("businesses-section").scrollIntoView({ behavior: "smooth" });
+      showToast(found.length + " کسب‌وکار یافت شد");
+    }
+
+    document.getElementById("search-btn").addEventListener("click", doSearch);
+    document.getElementById("search-input").addEventListener("keypress", e => { if (e.key === "Enter") { e.preventDefault(); doSearch(); } });
+
+    // تگ‌های سریع زیر جستجو
+    document.querySelectorAll(".quick-tag").forEach(tag => {
+      tag.addEventListener("click", () => {
+        const q = tag.dataset.query || tag.textContent.trim();
+        document.getElementById("search-input").value = q;
+        doSearch();
+      });
+    });
+    // جستجوی زنده هنگام تایپ (با تأخیر کوتاه)
+    let searchTimer = null;
+    document.getElementById("search-input").addEventListener("input", () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        const q = document.getElementById("search-input").value.trim();
+        if (q.length >= 2) doSearch();
+        else if (q.length === 0) { visibleBusinesses = 6; renderBusinesses(); }
+      }, 350);
+    });
+
+    document.getElementById("show-more-businesses").addEventListener("click", () => { visibleBusinesses += 6; renderBusinesses(); });
+    document.getElementById("show-all-categories").addEventListener("click", e => { e.preventDefault(); showAllCategories = !showAllCategories; renderCategories(); });
+
+    // ====================== Auth واقعی (localStorage) ======================
+    const AUTH_USERS_KEY = "trustfa_users";
+    const AUTH_SESSION_KEY = "trustfa_session";
+
+    function getUsers() {
+      try { return JSON.parse(localStorage.getItem(AUTH_USERS_KEY) || "[]"); }
+      catch { return []; }
+    }
+    function saveUsers(users) {
+      localStorage.setItem(AUTH_USERS_KEY, JSON.stringify(users));
+    }
+    function getSession() {
+      try { return JSON.parse(localStorage.getItem(AUTH_SESSION_KEY) || "null"); }
+      catch { return null; }
+    }
+    function setSession(user) {
+      if (user) {
+        localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone || "",
+          avatar: user.avatar || null,
+          provider: user.provider || "email"
+        }));
+      } else localStorage.removeItem(AUTH_SESSION_KEY);
+    }
+    function getCurrentUser() {
+      const session = getSession();
+      if (!session) return null;
+      // همیشه آخرین داده از لیست کاربران
+      const full = getUsers().find(u => String(u.id) === String(session.id));
+      if (full) {
+        return {
+          id: full.id,
+          name: full.name,
+          email: full.email,
+          phone: full.phone || "",
+          avatar: full.avatar || null,
+          provider: full.provider || "email"
+        };
+      }
+      return session;
+    }
+
+    function simpleHash(str) {
+      let h = 0;
+      for (let i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h |= 0; }
+      return "h" + Math.abs(h).toString(36) + str.length;
+    }
+
+    function renderNavAvatar(user) {
+      const el = document.getElementById("user-avatar");
+      if (!el || !user) return;
+      if (user.avatar) {
+        el.className = "w-10 h-10 rounded-full overflow-hidden shrink-0";
+        el.innerHTML = `<img src="${user.avatar}" alt="" class="w-full h-full object-cover" />`;
+      } else {
+        el.className = "w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center text-sm font-bold overflow-hidden shrink-0";
+        el.textContent = (user.name || "?").charAt(0);
+      }
+    }
+
+    function closeUserDropdown() {
+      const dd = document.getElementById("user-dropdown");
+      if (dd) dd.classList.add("hidden");
+    }
+    function toggleUserDropdown() {
+      const dd = document.getElementById("user-dropdown");
+      if (!dd) return;
+      dd.classList.toggle("hidden");
+    }
+
+    function updateAuthUI() {
+      const user = getCurrentUser();
+      const authBtns = document.getElementById("auth-buttons");
+      const userMenu = document.getElementById("user-menu");
+      if (user) {
+        authBtns.classList.add("hidden");
+        authBtns.classList.remove("flex");
+        userMenu.classList.remove("hidden");
+        userMenu.classList.add("flex");
+        document.getElementById("user-display-name").textContent = user.name.split(" ")[0];
+        renderNavAvatar(user);
+        const ab = document.getElementById("admin-menu-btn");
+        if (ab) { if (user.is_admin) ab.classList.remove("hidden"); else ab.classList.add("hidden"); }
+      } else {
+        authBtns.classList.remove("hidden");
+        authBtns.classList.add("flex");
+        userMenu.classList.add("hidden");
+        userMenu.classList.remove("flex");
+        closeUserDropdown();
+        const ab = document.getElementById("admin-menu-btn");
+        if (ab) ab.classList.add("hidden");
+      }
+      if (document.getElementById("reviews-list")) renderReviews();
+    }
+
+    document.getElementById("user-menu")?.addEventListener("click", e => {
+      e.stopPropagation();
+      toggleUserDropdown();
+    });
+    document.addEventListener("click", e => {
+      const wrap = document.getElementById("user-menu-wrap");
+      if (wrap && !wrap.contains(e.target)) closeUserDropdown();
+    });
+
+    function logout() {
+      setSession(null);
+      updateAuthUI();
+      showToast("از حساب خارج شدید");
+      showPage("home");
+    }
+
+    // ——— پنل کاربری ———
+    function loadProfilePage() {
+      const user = getCurrentUser();
+      if (!user) {
+        showToast("ابتدا وارد شوید");
+        showPage("login");
+        return;
+      }
+      document.getElementById("profile-name").value = user.name || "";
+      document.getElementById("profile-email").value = user.email || "";
+      document.getElementById("profile-phone").value = user.phone || "";
+      document.getElementById("profile-password").value = "";
+      document.getElementById("profile-name-label").textContent = user.name || "";
+      document.getElementById("profile-email-label").textContent = user.email || "";
+      document.getElementById("profile-provider-label").textContent =
+        user.provider === "google" ? "متصل به حساب گوگل" : "حساب با ایمیل/موبایل";
+
+      const preview = document.getElementById("profile-avatar-preview");
+      if (user.avatar) {
+        preview.className = "w-28 h-28 rounded-full overflow-hidden ring-4 ring-brand-50 shadow-lg bg-slate-100";
+        preview.innerHTML = `<img src="${user.avatar}" class="w-full h-full object-cover" alt="" />`;
+      } else {
+        preview.className = "w-28 h-28 rounded-full bg-gradient-to-br from-brand-400 to-emerald-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden ring-4 ring-brand-50 shadow-lg";
+        preview.textContent = (user.name || "?").charAt(0);
+      }
+
+      // نظرات من
+      const myList = document.getElementById("profile-my-reviews");
+      const mine = reviews.filter(r => String(r.userId) === String(user.id) && !r.hidden);
+      if (!mine.length) {
+        myList.innerHTML = `<p class="text-sm text-slate-400">هنوز نظری ثبت نکرده‌اید.</p>`;
+      } else {
+        myList.innerHTML = mine.map(r => `
+          <div class="flex items-start gap-3 p-3 rounded-xl border border-slate-100 bg-slate-50">
+            ${avatarHTML(user.name, "w-10 h-10", user.avatar)}
+            <div class="flex-1 min-w-0">
+              <div class="text-xs text-brand-600 font-medium">${r.business}</div>
+              <div class="font-semibold text-sm truncate">${r.title}</div>
+              <div class="text-xs text-slate-400 mt-0.5">${r.date} · ${starsHTML(r.rating, "text-xs")}</div>
+            </div>
+          </div>
+        `).join("");
+      }
+    }
+
+    // override showPage to load profile data
+    const _showPage = showPage;
+    showPage = function(name) {
+      _showPage(name);
+      if (name === "profile") loadProfilePage();
+    };
+
+    document.getElementById("profile-photo-input").addEventListener("change", e => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith("image/")) { showToast("فقط تصویر مجاز است"); return; }
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const user = getCurrentUser();
+        if (!user) return;
+        const users = getUsers();
+        const idx = users.findIndex(u => String(u.id) === String(user.id));
+        if (idx === -1) return;
+        users[idx].avatar = ev.target.result;
+        saveUsers(users);
+        setSession(users[idx]);
+        // به‌روز کردن آواتار روی نظرات خود کاربر
+        reviews.forEach(r => {
+          if (String(r.userId) === String(user.id)) r.avatar = ev.target.result;
+        });
+        saveReviews();
+        updateAuthUI();
+        loadProfilePage();
+        showToast("عکس پروفایل ذخیره شد ✓");
+      };
+      reader.readAsDataURL(file);
+      e.target.value = "";
+    });
+
+    document.getElementById("profile-remove-photo").addEventListener("click", () => {
+      const user = getCurrentUser();
+      if (!user) return;
+      const users = getUsers();
+      const idx = users.findIndex(u => String(u.id) === String(user.id));
+      if (idx === -1) return;
+      users[idx].avatar = null;
+      saveUsers(users);
+      setSession(users[idx]);
+      reviews.forEach(r => {
+        if (String(r.userId) === String(user.id)) delete r.avatar;
+      });
+      saveReviews();
+      updateAuthUI();
+      loadProfilePage();
+      showToast("عکس پروفایل حذف شد");
+    });
+
+    document.getElementById("profile-form").addEventListener("submit", e => {
+      e.preventDefault();
+      const user = getCurrentUser();
+      if (!user) return;
+      const users = getUsers();
+      const idx = users.findIndex(u => String(u.id) === String(user.id));
+      if (idx === -1) return;
+      const name = document.getElementById("profile-name").value.trim();
+      const email = document.getElementById("profile-email").value.trim().toLowerCase();
+      const phone = document.getElementById("profile-phone").value.trim();
+      const password = document.getElementById("profile-password").value;
+
+      if (users.some(u => u.email === email && String(u.id) !== String(user.id))) {
+        showToast("این ایمیل توسط کاربر دیگری استفاده شده");
+        return;
+      }
+      users[idx].name = name;
+      users[idx].email = email;
+      users[idx].phone = phone;
+      if (password && password.length >= 6) users[idx].passwordHash = simpleHash(password);
+      saveUsers(users);
+      setSession(users[idx]);
+      reviews.forEach(r => {
+        if (String(r.userId) === String(user.id)) r.user = name;
+      });
+      saveReviews();
+      updateAuthUI();
+      loadProfilePage();
+      showToast("اطلاعات پروفایل ذخیره شد ✓");
+    });
+
+    // ——— گوگل (دمو با عکس پروفایل) ———
+    function openGoogleModal() {
+      document.getElementById("google-modal").classList.remove("hidden");
+      document.getElementById("google-modal").classList.add("flex");
+    }
+    function closeGoogleModal() {
+      document.getElementById("google-modal").classList.add("hidden");
+      document.getElementById("google-modal").classList.remove("flex");
+    }
+    document.querySelectorAll("button").forEach(btn => {
+      if (btn.textContent.includes("گوگل") || (btn.innerHTML.includes("fa-google") && !btn.closest("#google-form"))) {
+        btn.addEventListener("click", e => {
+          if (btn.closest("#google-form") || btn.closest("#google-modal")) return;
+          e.preventDefault();
+          openGoogleModal();
+        });
+      }
+    });
+
+    document.getElementById("google-form").addEventListener("submit", async e => {
+      e.preventDefault();
+      const name = document.getElementById("google-name").value.trim();
+      const email = document.getElementById("google-email").value.trim().toLowerCase();
+      const url = document.getElementById("google-photo-url").value.trim();
+      const fileInput = document.getElementById("google-photo-file");
+      let avatar = null;
+
+      if (fileInput.files && fileInput.files[0]) {
+        avatar = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = ev => resolve(ev.target.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(fileInput.files[0]);
+        });
+      } else if (url) {
+        avatar = url;
+      }
+
+      const users = getUsers();
+      let user = users.find(u => u.email === email);
+      if (user) {
+        user.name = name;
+        user.provider = "google";
+        if (avatar) user.avatar = avatar;
+      } else {
+        user = {
+          id: Date.now().toString(),
+          name,
+          email,
+          phone: "",
+          passwordHash: simpleHash("google-" + email),
+          avatar: avatar || null,
+          provider: "google",
+          createdAt: new Date().toISOString()
+        };
+        users.push(user);
+      }
+      saveUsers(users);
+      setSession(user);
+      updateAuthUI();
+      closeGoogleModal();
+      showToast("ورود با گوگل موفق! " + name.split(" ")[0]);
+      setTimeout(() => showPage("profile"), 800);
+    });
+
+    // ثبت‌نام
+    document.getElementById("register-form").addEventListener("submit", e => {
+      e.preventDefault();
+      const errEl = document.getElementById("register-error");
+      errEl.classList.add("hidden");
+
+      const name = document.getElementById("reg-name").value.trim();
+      const email = document.getElementById("reg-email").value.trim().toLowerCase();
+      const phone = document.getElementById("reg-phone").value.trim().replace(/\s/g, "");
+      const password = document.getElementById("reg-password").value;
+      const password2 = document.getElementById("reg-password2").value;
+
+      if (password.length < 6) {
+        errEl.textContent = "رمز عبور حداقل ۶ کاراکتر باشد";
+        errEl.classList.remove("hidden");
+        return;
+      }
+      if (password !== password2) {
+        errEl.textContent = "رمز عبور و تکرار آن یکسان نیستند";
+        errEl.classList.remove("hidden");
+        return;
+      }
+
+      const users = getUsers();
+      if (users.some(u => u.email === email)) {
+        errEl.textContent = "این ایمیل قبلاً ثبت شده است";
+        errEl.classList.remove("hidden");
+        return;
+      }
+      if (users.some(u => u.phone === phone)) {
+        errEl.textContent = "این شماره موبایل قبلاً ثبت شده است";
+        errEl.classList.remove("hidden");
+        return;
+      }
+
+      const newUser = {
+        id: Date.now().toString(),
+        name,
+        email,
+        phone,
+        passwordHash: simpleHash(password),
+        createdAt: new Date().toISOString()
+      };
+      users.push(newUser);
+      saveUsers(users);
+      setSession(newUser);
+      updateAuthUI();
+      showToast("ثبت‌نام موفق! خوش آمدید " + name.split(" ")[0] + " 🎉");
+      e.target.reset();
+      setTimeout(() => showPage("home"), 1000);
+    });
+
+    // ورود
+    document.getElementById("login-form").addEventListener("submit", e => {
+      e.preventDefault();
+      const errEl = document.getElementById("login-error");
+      errEl.classList.add("hidden");
+
+      const identifier = document.getElementById("login-identifier").value.trim().toLowerCase();
+      const password = document.getElementById("login-password").value;
+      const users = getUsers();
+
+      const user = users.find(u =>
+        u.email === identifier ||
+        u.phone === identifier ||
+        u.phone === identifier.replace(/\s/g, "")
+      );
+
+      if (!user || user.passwordHash !== simpleHash(password)) {
+        errEl.textContent = "ایمیل/موبایل یا رمز عبور اشتباه است";
+        errEl.classList.remove("hidden");
+        return;
+      }
+
+      setSession(user);
+      updateAuthUI();
+      showToast("ورود موفق! سلام " + user.name.split(" ")[0]);
+      e.target.reset();
+      setTimeout(() => showPage("home"), 900);
+    });
+
+    // قبل از ثبت نظر، بررسی لاگین
+    const originalReviewForm = document.getElementById("review-form");
+    originalReviewForm.addEventListener("submit", function reviewAuthGuard(e) {
+      if (!getCurrentUser()) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        showToast("برای ثبت نظر ابتدا وارد شوید");
+        setTimeout(() => showPage("login"), 800);
+      }
+    }, true);
+
+    // ——— فوتر: تماس، ثبت کسب‌وکار، پنل، تعرفه ———
+    const BIZ_OWNERS_KEY = "trustfa_owned_businesses";
+    function getOwnedBusinesses() {
+      try { return JSON.parse(localStorage.getItem(BIZ_OWNERS_KEY) || "[]"); } catch { return []; }
+    }
+    function saveOwnedBusinesses(list) {
+      localStorage.setItem(BIZ_OWNERS_KEY, JSON.stringify(list));
+    }
+
+    document.getElementById("contact-form")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const name = document.getElementById("contact-name").value.trim();
+      const email = document.getElementById("contact-email").value.trim();
+      const message = document.getElementById("contact-message").value.trim();
+      const msgs = JSON.parse(localStorage.getItem("trustfa_contact_msgs") || "[]");
+      msgs.push({ name, email, message, at: new Date().toISOString() });
+      localStorage.setItem("trustfa_contact_msgs", JSON.stringify(msgs));
+      e.target.reset();
+      showToast("پیام شما ثبت شد. به‌زودی پاسخ می‌دهیم ✓");
+    });
+
+    document.getElementById("biz-register-form")?.addEventListener("submit", e => {
+      e.preventDefault();
+      const user = getCurrentUser();
+      if (!user) {
+        showToast("برای ثبت کسب‌وکار ابتدا وارد شوید");
+        setTimeout(() => showPage("login"), 800);
+        return;
+      }
+      const name = document.getElementById("biz-reg-name").value.trim();
+      const category = document.getElementById("biz-reg-category").value;
+      const website = document.getElementById("biz-reg-website").value.trim();
+      const desc = document.getElementById("biz-reg-desc").value.trim();
+
+      // اضافه به لیست کسب‌وکارهای سایت
+      const exists = businesses.some(b => b.name === name);
+      if (!exists) {
+        businesses.unshift({
+          id: Date.now(),
+          name,
+          category,
+          rating: 0,
+          reviews: 0,
+          logo: name.charAt(0),
+          color: "bg-brand-600",
+          domain: website.replace(/^https?:\/\//, "").split("/")[0] || "",
+          icon: "fa-store",
+          verified: false
+        });
+      }
+
+      const owned = getOwnedBusinesses();
+      owned.push({
+        id: Date.now().toString(),
+        ownerId: user.id,
+        name,
+        category,
+        website,
+        desc,
+        plan: "رایگان",
+        createdAt: new Date().toISOString()
+      });
+      saveOwnedBusinesses(owned);
+      e.target.reset();
+      showToast("کسب‌وکار «" + name + "» ثبت شد ✓");
+      renderBusinesses();
+      setTimeout(() => showPage("biz-panel"), 900);
+    });
+
+    function openBizPanel() {
+      const user = getCurrentUser();
+      if (!user) {
+        showToast("برای ورود به پنل ابتدا وارد شوید");
+        setTimeout(() => showPage("login"), 800);
+        return;
+      }
+      showPage("biz-panel");
+      renderBizPanel();
+    }
+
+    function renderBizPanel() {
+      const user = getCurrentUser();
+      const list = document.getElementById("biz-panel-list");
+      if (!user || !list) return;
+      const owned = getOwnedBusinesses().filter(b => String(b.ownerId) === String(user.id));
+      if (!owned.length) {
+        list.innerHTML = `
+          <p class="text-slate-400 text-sm mb-4">هنوز کسب‌وکاری ثبت نکرده‌اید.</p>
+          <button onclick="showPage('biz-register')" class="px-5 py-2.5 rounded-xl bg-brand-600 text-white font-semibold hover:bg-brand-700 transition">ثبت کسب‌وکار جدید</button>`;
+        return;
+      }
+      list.innerHTML = owned.map(b => {
+        const revs = reviews.filter(r => r.business === b.name && !r.hidden);
+        return `
+          <div class="border border-slate-100 rounded-2xl p-5">
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <h3 class="font-bold text-lg">${b.name}</h3>
+                <p class="text-sm text-slate-500">${b.category} · پلن ${b.plan || "رایگان"}</p>
+              </div>
+              <span class="text-xs px-2 py-1 rounded-full bg-brand-50 text-brand-700">${revs.length} نظر</span>
+            </div>
+            ${b.desc ? `<p class="text-sm text-slate-600 mb-3">${b.desc}</p>` : ""}
+            <div class="space-y-2">
+              ${revs.length ? revs.slice(0, 5).map(r => `
+                <div class="text-sm bg-slate-50 rounded-xl p-3">
+                  <div class="font-medium">${r.user} · ${starsHTML(r.rating, "text-xs")}</div>
+                  <div class="text-slate-600 mt-1">${r.title}</div>
+                </div>
+              `).join("") : `<p class="text-xs text-slate-400">هنوز نظری برای این کسب‌وکار نیست.</p>`}
+            </div>
+          </div>`;
+      }).join("") + `
+        <button onclick="showPage('biz-register')" class="mt-2 px-5 py-2.5 rounded-xl border border-brand-500 text-brand-600 font-semibold hover:bg-brand-50 transition">+ ثبت کسب‌وکار دیگر</button>`;
+    }
+
+    function selectPlan(planName) {
+      const user = getCurrentUser();
+      if (!user) {
+        showToast("ابتدا وارد شوید");
+        setTimeout(() => showPage("login"), 800);
+        return;
+      }
+      const owned = getOwnedBusinesses();
+      const mine = owned.filter(b => String(b.ownerId) === String(user.id));
+      if (!mine.length) {
+        showToast("ابتدا یک کسب‌وکار ثبت کنید");
+        setTimeout(() => showPage("biz-register"), 800);
+        return;
+      }
+      mine.forEach(b => { b.plan = planName; });
+      saveOwnedBusinesses(owned);
+      showToast("پلن «" + planName + "» برای کسب‌وکار شما فعال شد ✓");
+      setTimeout(() => showPage("biz-panel"), 900);
+    }
+
+    // لینک قوانین در فرم ثبت‌نام
+    document.querySelectorAll('a[href="#"]').forEach(a => {
+      if (a.textContent.includes("قوانین")) {
+        a.addEventListener("click", e => { e.preventDefault(); showPage("terms"); });
+      }
+    });
+
+
+    // ===== Google Identity + Admin =====
+    window.GOOGLE_CLIENT_ID = "";
+    async function loadPublicConfig() {
+      try {
+        const cfg = await api("/api/config");
+        window.GOOGLE_CLIENT_ID = cfg.googleClientId || "";
+        if (window.GOOGLE_CLIENT_ID) initGoogleButtons();
+        else {
+          document.querySelectorAll("#google-login-hint").forEach(el => el.classList.remove("hidden"));
+        }
+      } catch (e) { console.warn("config", e); }
+    }
+    function handleGoogleCredential(response) {
+      (async () => {
+        try {
+          const data = await api("/api/auth/google/token", {
+            method: "POST",
+            body: JSON.stringify({ credential: response.credential })
+          });
+          localStorage.setItem(window.API_TOKEN_KEY, data.token);
+          if (typeof setSession === "function") setSession(data.user);
+          else localStorage.setItem("trustfa_session", JSON.stringify(data.user));
+          if (typeof updateAuthUI === "function") updateAuthUI();
+          if (typeof showToast === "function") showToast("ورود با گوگل موفق: " + (data.user.name || ""));
+          setTimeout(() => showPage("home"), 600);
+        } catch (err) {
+          if (typeof showToast === "function") showToast(err.message);
+          else alert(err.message);
+        }
+      })();
+    }
+    function initGoogleButtons() {
+      if (!window.google || !window.GOOGLE_CLIENT_ID) return;
+      const opts = {
+        client_id: window.GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredential,
+        ux_mode: "popup",
+        auto_select: false
+      };
+      try {
+        google.accounts.id.initialize(opts);
+        ["google-btn-login", "google-btn-register"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.innerHTML = "";
+            google.accounts.id.renderButton(el, {
+              theme: "outline",
+              size: "large",
+              width: 320,
+              text: "continue_with",
+              shape: "pill",
+              locale: "fa"
+            });
+          }
+        });
+      } catch (e) { console.warn("GSI", e); }
+    }
+    window.addEventListener("load", () => {
+      loadPublicConfig();
+      // GSI may load late
+      let tries = 0;
+      const iv = setInterval(() => {
+        tries++;
+        if (window.google && window.GOOGLE_CLIENT_ID) { initGoogleButtons(); clearInterval(iv); }
+        if (tries > 20) clearInterval(iv);
+      }, 300);
+    });
+
+    // Admin
+    let adminTab = "reviews";
+    async function loadAdminPage() {
+      const user = typeof getCurrentUser === "function" ? getCurrentUser() : null;
+      if (!user || !user.is_admin) {
+        showToast("دسترسی ادمین ندارید");
+        showPage("home");
+        return;
+      }
+      try {
+        const s = await api("/api/admin/stats");
+        document.getElementById("admin-stats").innerHTML = [
+          ["کاربران", s.users, "fa-users", "bg-blue-50 text-blue-700"],
+          ["کسب‌وکار", s.businesses, "fa-store", "bg-emerald-50 text-emerald-700"],
+          ["نظرات", s.reviews, "fa-star", "bg-amber-50 text-amber-700"],
+          ["گزارش‌ها", s.reports, "fa-flag", "bg-red-50 text-red-700"],
+        ].map(([l,v,i,c]) => `<div class="rounded-2xl border border-slate-100 p-4 ${c.split(" ")[0]}"><div class="text-2xl font-bold">${v}</div><div class="text-sm mt-1 flex items-center gap-2"><i class="fas ${i}"></i>${l}</div></div>`).join("");
+        await renderAdminTab(adminTab);
+      } catch (e) { showToast(e.message); }
+    }
+    async function renderAdminTab(tab) {
+      adminTab = tab;
+      document.querySelectorAll(".admin-tab").forEach(b => {
+        const on = b.dataset.tab === tab;
+        b.className = "admin-tab px-4 py-2 rounded-xl text-sm font-medium " + (on ? "bg-brand-600 text-white" : "bg-white border border-slate-200");
+      });
+      const box = document.getElementById("admin-content");
+      box.innerHTML = '<div class="text-center text-slate-400 py-8">در حال بارگذاری...</div>';
+      try {
+        if (tab === "reviews") {
+          const data = await api("/api/admin/reviews");
+          box.innerHTML = (data.reviews || []).map(r => `
+            <div class="border-b border-slate-100 py-4 flex flex-col md:flex-row md:items-center gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold">${r.title} <span class="text-amber-500 text-sm">${"★".repeat(r.rating)}</span>
+                  ${r.hidden ? '<span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full mr-2">مخفی</span>' : ""}
+                </div>
+                <div class="text-sm text-slate-500 truncate">${r.user} · ${r.business}</div>
+                <div class="text-sm text-slate-600 mt-1 line-clamp-2">${r.text}</div>
+              </div>
+              <div class="flex gap-2 shrink-0">
+                <button onclick="adminHideReview(${r.id})" class="px-3 py-1.5 rounded-lg text-xs border border-slate-200 hover:bg-slate-50">${r.hidden ? "نمایش" : "مخفی"}</button>
+                <button onclick="adminDeleteReview(${r.id})" class="px-3 py-1.5 rounded-lg text-xs border border-red-200 text-red-600 hover:bg-red-50">حذف</button>
+              </div>
+            </div>`).join("") || '<p class="text-slate-400 text-center py-6">نظری نیست</p>';
+        } else if (tab === "users") {
+          const data = await api("/api/admin/users");
+          box.innerHTML = (data.users || []).map(u => `
+            <div class="border-b border-slate-100 py-3 flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <div class="font-medium">${u.name} ${u.is_admin ? '<span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">ادمین</span>' : ""}</div>
+                <div class="text-sm text-slate-500 truncate">${u.email} · ${u.provider}</div>
+              </div>
+              <button onclick="adminToggleUser('${u.id}')" class="px-3 py-1.5 rounded-lg text-xs border border-slate-200 hover:bg-slate-50 shrink-0">${u.is_admin ? "حذف ادمین" : "ادمین کن"}</button>
+            </div>`).join("");
+        } else if (tab === "businesses") {
+          const data = await api("/api/admin/businesses");
+          box.innerHTML = (data.businesses || []).map(b => `
+            <div class="border-b border-slate-100 py-3 flex items-center justify-between gap-3">
+              <div><div class="font-medium">${b.name} ${b.verified ? "✓" : ""}</div>
+              <div class="text-sm text-slate-500">${b.category} · ${b.rating}★ · ${b.reviews} نظر</div></div>
+              <button onclick="adminVerifyBiz(${b.id})" class="px-3 py-1.5 rounded-lg text-xs border border-slate-200 hover:bg-slate-50">${b.verified ? "لغو تأیید" : "تأیید"}</button>
+            </div>`).join("");
+        } else if (tab === "reports") {
+          const data = await api("/api/admin/reports");
+          box.innerHTML = (data.reports || []).map(r => `
+            <div class="border-b border-slate-100 py-3 text-sm">
+              <span class="font-medium">نظر #${r.review_id}</span> · دلیل: ${r.reason}
+              <span class="text-slate-400 text-xs mr-2">${r.created_at || ""}</span>
+            </div>`).join("") || '<p class="text-slate-400 text-center py-6">گزارشی نیست</p>';
+        } else if (tab === "messages") {
+          const data = await api("/api/admin/messages");
+          box.innerHTML = (data.messages || []).map(m => `
+            <div class="border-b border-slate-100 py-3">
+              <div class="font-medium">${m.name} <span class="text-slate-400 text-sm">${m.email}</span></div>
+              <div class="text-sm text-slate-600 mt-1">${m.message}</div>
+            </div>`).join("") || '<p class="text-slate-400 text-center py-6">پیامی نیست</p>';
+        }
+      } catch (e) { box.innerHTML = `<p class="text-red-500">${e.message}</p>`; }
+    }
+    async function adminHideReview(id) {
+      await api("/api/admin/reviews/" + id + "/hide", { method: "PATCH" });
+      renderAdminTab("reviews");
+    }
+    async function adminDeleteReview(id) {
+      if (!confirm("حذف قطعی این نظر؟")) return;
+      await api("/api/admin/reviews/" + id, { method: "DELETE" });
+      renderAdminTab("reviews");
+    }
+    async function adminToggleUser(id) {
+      await api("/api/admin/users/" + id + "/admin", { method: "PATCH" });
+      renderAdminTab("users");
+    }
+    async function adminVerifyBiz(id) {
+      await api("/api/admin/businesses/" + id + "/verify", { method: "PATCH" });
+      renderAdminTab("businesses");
+    }
+    document.getElementById("admin-tabs")?.addEventListener("click", e => {
+      const btn = e.target.closest(".admin-tab");
+      if (btn) renderAdminTab(btn.dataset.tab);
+    });
+
+    // Hook showPage for admin
+    const _showPageOrig = typeof showPage === "function" ? showPage : null;
+
+    // Init
+    updateAuthUI();
+    renderCategories();
+    renderBusinesses();
+    renderReviews();
+  </script>
+</body>
+</html>
