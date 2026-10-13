@@ -26,6 +26,6 @@ CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 ADMIN_EMAILS = [
     e.strip().lower()
-    for e in os.getenv("ADMIN_EMAILS", "admin@trustfa.ir").split(",")
+    for e in os.getenv("ADMIN_EMAILS", "").split(",")
     if e.strip()
 ]
